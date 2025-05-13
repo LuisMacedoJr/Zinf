@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1747179769 source:c:\users\lhcma\documents\github\zinf\main.c
+	"raylib.h"
+	<string.h>
+	<stdlib.h>
+
