@@ -18,6 +18,98 @@ struct Monster
     int posX, posY;
 };
 
+
+//Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
+void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
+{
+
+    char *p;
+
+    for(p = &mapa[0][0]; p <= &mapa[(ALTURA/CELULAMATRIZ) - 1][(LARGURA/CELULAMATRIZ) - 1]; p++)
+    {
+        if (*p == 'J')
+        {
+            *posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            *posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+        }
+    }
+
+}
+
+//Funcao que dada uma matriz mapa, desenha os obstaculos marcados como P
+void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
+{
+    char *p;
+    int posX, posY;
+
+    for(p = &mapa[0][0]; p <= &mapa[(ALTURA/CELULAMATRIZ) - 1][(LARGURA/CELULAMATRIZ) - 1]; p++)
+    {
+        if (*p == 'P')
+        {
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, BLUE);
+        }
+    }
+
+}
+
+//Funcao que desenha o jogador continuamente
+void DesenhaJogador (struct Player player) {
+    DrawRectangle(player.posX, player.posY, player.tamanhoPersonagem, player.tamanhoPersonagem, LIME);
+}
+
+//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimento o jogador, com restricao de movimento a obstaculos
+void MovimentaJogador (char direcao, struct Player player, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
+{
+
+    switch (direcao)
+    {
+    case 'U':
+        if (player.posY > 0 &&
+                (mapa[(player.posY - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P'))
+        {
+            *posY -= player.velocidadeMovimento;
+        }
+
+        break;
+    case 'D':
+        if (player.posY < ALTURA - player.tamanhoPersonagem &&
+                (mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P' &&
+                 mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P')
+           )
+        {
+            *posY += player.velocidadeMovimento;
+        }
+
+        break;
+    case 'L':
+        if (player.posX > 0 &&
+                (mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P')
+           )
+        {
+            *posX -= player.velocidadeMovimento;
+        }
+
+        break;
+    case 'R':
+        if (player.posX < LARGURA - player.tamanhoPersonagem &&
+                (mapa[player.posY/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P')
+           )
+        {
+            *posX += player.velocidadeMovimento;
+        }
+
+        break;
+    default:
+        break;
+    }
+
+}
+
 int main()
 {
     //Criar o player:
@@ -33,10 +125,10 @@ int main()
     {
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
@@ -49,25 +141,15 @@ int main()
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
     };
 
-    int i, j;
+//    int i, j;
 
     //define velocidade do jogador e tamanho
     player.velocidadeMovimento = 5;
     player.tamanhoPersonagem = 50;
 
     //Varre o mapa fornecido e posiciona o jogador inicialmente
-    for(i=0; i<ALTURA/CELULAMATRIZ; i++)
-    {
-        for(j=0; j<LARGURA/CELULAMATRIZ; j++)
-        {
-            if(mapa[i][j] == 'J')
-            {
-                player.posX = j*CELULAMATRIZ;
-                player.posY = i*CELULAMATRIZ;
-            }
-        }
-    }
 
+    PosicionaJogadorInicialmente(mapa, &player.posX, &player.posY);
 
     InitWindow(LARGURA, ALTURA, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(60);// Ajusta a janela para 60 frames por segundo
@@ -76,52 +158,34 @@ int main()
     //Utilizamos ele para atualizar o estado do programa / jogo
     while (!WindowShouldClose())
     {
-
         //Movimento do jogador, com movimento continuo e com mecanica de colisao implementada
-        if(IsKeyDown(KEY_UP) && player.posY > 0 &&
-                (mapa[(player.posY - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P')
-          )
+        if(IsKeyDown(KEY_UP))
         {
-            player.posY -= player.velocidadeMovimento;
+            MovimentaJogador('U', player, mapa, &player.posX, &player.posY);
         }
-        if(IsKeyDown(KEY_DOWN) && player.posY < ALTURA - player.tamanhoPersonagem &&
-                (mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P')
-          )
+
+        if(IsKeyDown(KEY_DOWN))
         {
-            player.posY += player.velocidadeMovimento;
+            MovimentaJogador('D', player, mapa, &player.posX, &player.posY);
         }
-        if(IsKeyDown(KEY_LEFT) && player.posX > 0 &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P')
-          )
+
+        if(IsKeyDown(KEY_LEFT))
         {
-            player.posX -= player.velocidadeMovimento;
+            MovimentaJogador('L', player, mapa, &player.posX, &player.posY);
         }
-        if(IsKeyDown(KEY_RIGHT) && player.posX < LARGURA - player.tamanhoPersonagem
-                &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P')
-          )
+
+        if(IsKeyDown(KEY_RIGHT))
         {
-            player.posX += player.velocidadeMovimento;
+            MovimentaJogador('R', player, mapa, &player.posX, &player.posY);
         }
+
 
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
-        DrawRectangle(player.posX, player.posY, player.tamanhoPersonagem, player.tamanhoPersonagem, LIME);
-        for (i = 0; i < LARGURA/CELULAMATRIZ; i++)
-        {
-            for (j = 0; j < ALTURA/CELULAMATRIZ; j++)
-            {
-                if (mapa[j][i] == 'P')
-                {
-                    DrawRectangle(i*CELULAMATRIZ, j*CELULAMATRIZ, CELULAMATRIZ, CELULAMATRIZ, BLUE);
-                }
-            }
-        }
+        DesenhaJogador(player);
+        DesenhaMapa(mapa);
+
 //        for(i=0; i<numMonsters; i++)
 //        {
 //            DrawRectangle(monsters[i].posX*50,monsters[i].posY*50,50,50,RED);
@@ -132,27 +196,3 @@ int main()
     CloseWindow(); // Fecha a janela
     return 0;
 }
-
-
-
-
-// codigo nao utilizado
-
-
- //   struct Obstaculo obstaculo;
-
-
-//struct Obstaculo
-//{
-//    int posX, posY;
-//    int tamanhoObstaculo;
-//};
-
-
-
-//
-//   (player.posY != obstaculo.posY + obstaculo.tamanhoObstaculo ||
-//                 player.posX > obstaculo.posX + obstaculo.tamanhoObstaculo ||
-//                 player.posX + player.tamanhoPersonagem < obstaculo.posX ||
-//                 paredes[(player.posY/50) - 1][player.posX/50] != 1)
-//          )
