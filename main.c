@@ -5,19 +5,18 @@
 #define LARGURA 1200
 #define ALTURA 800
 #define CELULAMATRIZ 50
+#define MAXMONSTROS 20
 
 struct Player
 {
-    int posX, posY;
+    int posX, posY, tamanhoPersonagem;;
     int velocidadeMovimento;
-    int tamanhoPersonagem;
 };
 
-struct Monster
+struct Monsters
 {
-    int posX, posY;
+    int posX[MAXMONSTROS], posY[MAXMONSTROS];
 };
-
 
 //Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
 void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
@@ -34,6 +33,24 @@ void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULA
         }
     }
 
+}
+
+//Lê o mapa e guarda as posições dos montros nas variáveis posX e posY da estrutura Monsters
+void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[]) {
+    int i, j, iMonstro = 0;
+    for(i=0;i<MAXMONSTROS;i++) {
+        posX[i] = -1;
+        posY[i] = -1;
+    }
+    for(i=0;i<ALTURA/CELULAMATRIZ;i++) {
+        for(j=0;j<LARGURA/CELULAMATRIZ;j++) {
+            if(mapa[i][j] == 'M') {
+                posX[iMonstro] = j*CELULAMATRIZ;
+                posY[iMonstro] = i*CELULAMATRIZ;
+                iMonstro++;
+            }
+        }
+    }
 }
 
 //Funcao que dada uma matriz mapa, desenha os obstaculos marcados como P
@@ -54,9 +71,17 @@ void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
 
 }
 
-//Funcao que desenha o jogador continuamente
+//Funcao que desenha o jogador
 void DesenhaJogador (struct Player player) {
     DrawRectangle(player.posX, player.posY, player.tamanhoPersonagem, player.tamanhoPersonagem, LIME);
+}
+
+//Funcao que desenha os monstros
+void DesenhaMonstros(struct Monsters monstros) {
+    int i;
+    for(i=0;i<MAXMONSTROS;i++)
+        if(monstros.posX[i] != -1, monstros.posY[i] != -1)
+            DrawRectangle(monstros.posX[i], monstros.posY[i], CELULAMATRIZ, CELULAMATRIZ, RED);
 }
 
 //Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimento o jogador, com restricao de movimento a obstaculos
@@ -110,23 +135,33 @@ void MovimentaJogador (char direcao, struct Player player, char mapa[ALTURA/CELU
 
 }
 
+//Função que detecta se duas teclas estão sendo pressionadas ao mesmo tempo, e, se sim, normaliza o vetor da velocidade
+void NormalizaVelocidade(int *vel) {
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
+        *vel = 2;
+    else if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
+        *vel = 2;
+    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
+        *vel = 2;
+    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
+        *vel = 2;
+    else
+        *vel = 5;
+}
+
 int main()
 {
-    //Criar o player:
+    //Criar o player e a lista de monstros:
     struct Player player;
-
-    //Codigo dedicado a mecanica de monstros
-    //struct Monster monsters[] = {{8,1},{1,3},{8,5}};
-    //int numMonsters = sizeof(monsters) / sizeof(monsters[0]);
-
+    struct Monsters monstros;
 
     //Cria a matriz contendo as posicoes iniciais do jogo, com P = parede, J = jogador
     char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ] =
     {
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
@@ -135,21 +170,21 @@ int main()
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
     };
 
-//    int i, j;
-
-    //define velocidade do jogador e tamanho
+    //define tamanho e velocidade do jogador
+    player.tamanhoPersonagem = CELULAMATRIZ;
     player.velocidadeMovimento = 5;
-    player.tamanhoPersonagem = 50;
 
     //Varre o mapa fornecido e posiciona o jogador inicialmente
-
     PosicionaJogadorInicialmente(mapa, &player.posX, &player.posY);
+
+    //Setar posições iniciais dos monstros
+    CriaMonstros(mapa,monstros.posX,monstros.posY);
 
     InitWindow(LARGURA, ALTURA, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(60);// Ajusta a janela para 60 frames por segundo
@@ -158,38 +193,25 @@ int main()
     //Utilizamos ele para atualizar o estado do programa / jogo
     while (!WindowShouldClose())
     {
-        //Movimento do jogador, com movimento continuo e com mecanica de colisao implementada
-        if(IsKeyDown(KEY_UP))
-        {
+        //Movimento do jogador
+        if(IsKeyDown(KEY_W))
             MovimentaJogador('U', player, mapa, &player.posX, &player.posY);
-        }
-
-        if(IsKeyDown(KEY_DOWN))
-        {
+        if(IsKeyDown(KEY_S))
             MovimentaJogador('D', player, mapa, &player.posX, &player.posY);
-        }
-
-        if(IsKeyDown(KEY_LEFT))
-        {
+        if(IsKeyDown(KEY_A))
             MovimentaJogador('L', player, mapa, &player.posX, &player.posY);
-        }
-
-        if(IsKeyDown(KEY_RIGHT))
-        {
+        if(IsKeyDown(KEY_D))
             MovimentaJogador('R', player, mapa, &player.posX, &player.posY);
-        }
+
 
 
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
         DesenhaJogador(player);
+        DesenhaMonstros(monstros);
         DesenhaMapa(mapa);
 
-//        for(i=0; i<numMonsters; i++)
-//        {
-//            DrawRectangle(monsters[i].posX*50,monsters[i].posY*50,50,50,RED);
-//        }
         EndDrawing(); //Finaliza o ambiente de desenho na tela
     }
 
