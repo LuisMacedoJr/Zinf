@@ -18,7 +18,7 @@ struct Player
 
 struct Monstros
 {
-    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS];
+    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS], ataqueStun[MAXMONSTROS];
     int velocidadeMovimento, raioVisao;
     float distPlayer[MAXMONSTROS];
 };
@@ -41,7 +41,7 @@ void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULA
 }
 
 //Lê o mapa e guarda as posições dos montros nas variáveis posX e posY da estrutura Monstros, além da quantidade de monstros no mapa inteiro
-void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], int enterrado[], int timerMovimento[], int pontoX[], int pontoY[], int *quantidadeMonstros) {
+void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], int enterrado[], int timerMovimento[], int pontoX[], int pontoY[], int ataqueStun[], int *quantidadeMonstros) {
     int i, j, iMonstro = 0;
     for(i=0;i<MAXMONSTROS;i++) {
         posX[i] = -1;
@@ -50,6 +50,7 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX
         timerMovimento[i] = 300;
         pontoX[i] = -1;
         pontoY[i] = -1;
+        ataqueStun[i] = 0;
     }
     for(i=0;i<ALTURA/CELULAMATRIZ;i++) {
         for(j=0;j<LARGURA/CELULAMATRIZ;j++) {
@@ -121,48 +122,48 @@ void DesenhaMonstros(struct Monstros monstros, struct Player player) {
     }
 }
 
-//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimento o jogador, com restricao de movimento a obstaculos
-void MovimentaJogador (char direcao, struct Player player, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
+//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica)
+void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
 {
 
     switch (direcao)
     {
     case 'U':
-        if (player.posY > 0 &&
-                (mapa[(player.posY - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P'))
+        if (*posY > 0 &&
+                (mapa[(*posY - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY - 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P'))
         {
-            *posY -= player.velocidadeMovimento;
+            *posY -= vel;
         }
 
         break;
     case 'D':
-        if (player.posY < ALTURA - player.tamanhoPersonagem &&
-                (mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P')
+        if (*posY < ALTURA - CELULAMATRIZ &&
+                (mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posY += player.velocidadeMovimento;
+            *posY += vel;
         }
 
         break;
     case 'L':
-        if (player.posX > 0 &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P')
+        if (*posX > 0 &&
+                (mapa[*posY/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posX -= player.velocidadeMovimento;
+            *posX -= vel;
         }
 
         break;
     case 'R':
-        if (player.posX < LARGURA - player.tamanhoPersonagem &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P')
+        if (*posX < LARGURA - CELULAMATRIZ &&
+                (mapa[*posY/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posX += player.velocidadeMovimento;
+            *posX += vel;
         }
 
         break;
@@ -172,19 +173,21 @@ void MovimentaJogador (char direcao, struct Player player, char mapa[ALTURA/CELU
 
 }
 
-//Função que detecta se duas teclas estão sendo pressionadas ao mesmo tempo, e, se sim, normaliza o vetor da velocidade
-//void NormalizaVelocidade(int *vel) {
-//    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
-//        *vel = 2;
-//    else
-//        *vel = 5;
-//}
+//Aplica knockback ao levar dano. Recebe um int força e tolerancia, a qual indica a que distância do centro é preciso estar para levar knockback em duas direções (genérica)
+void Knockback(int *x1, int *y1, int x2, int y2, int forca, int tolerancia, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
+    if(x2 - *x1 > tolerancia) {
+        Movimenta('L',mapa,x1,y1,forca);
+    }
+    if(x2 - *x1 < -tolerancia) {
+        Movimenta('R',mapa,x1,y1,forca);
+    }
+    if(y2 - *y1 > tolerancia) {
+        Movimenta('U',mapa,x1,y1,forca);
+    }
+    if(y2 - *y1 < -tolerancia) {
+        Movimenta('D',mapa,x1,y1,forca);
+    }
+}
 
 int main()
 {
@@ -231,7 +234,7 @@ int main()
     PosicionaJogadorInicialmente(mapa, &player.posX, &player.posY);
 
     //Setar posições iniciais dos monstros
-    CriaMonstros(mapa,monstros.posX,monstros.posY,monstros.enterrado,monstros.timerMovimento,monstros.pontoX,monstros.pontoY,&monstros.quantidadeMonstros);
+    CriaMonstros(mapa,monstros.posX,monstros.posY,monstros.enterrado,monstros.timerMovimento,monstros.pontoX,monstros.pontoY,monstros.ataqueStun,&monstros.quantidadeMonstros);
 
     InitWindow(LARGURA, ALTURA, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(60);// Ajusta a janela para 60 frames por segundo
@@ -242,13 +245,13 @@ int main()
     {
         //Movimento do jogador
         if(IsKeyDown(KEY_W))
-            MovimentaJogador('U', player, mapa, &player.posX, &player.posY);
+            Movimenta('U', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
         if(IsKeyDown(KEY_S))
-            MovimentaJogador('D', player, mapa, &player.posX, &player.posY);
+            Movimenta('D', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
         if(IsKeyDown(KEY_A))
-            MovimentaJogador('L', player, mapa, &player.posX, &player.posY);
+            Movimenta('L', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
         if(IsKeyDown(KEY_D))
-            MovimentaJogador('R', player, mapa, &player.posX, &player.posY);
+            Movimenta('R', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
 
 
 
@@ -257,19 +260,27 @@ int main()
         DistMonstroPlayer(monstros.posX,monstros.posY,monstros.distPlayer,player,monstros);
         for(i=0;i<monstros.quantidadeMonstros;i++) {
             //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
-            if(MonstroDeveMover(monstros, player, i)) {
-            //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
+            if(MonstroDeveMover(monstros, player, i) && monstros.ataqueStun[i] <= 0) {
+                //Enterra o monstro
+                monstros.enterrado[i] = 1;
                 if(monstros.posX[i] - player.posX < -25) {
-                    monstros.posX[i] += monstros.velocidadeMovimento;
+                    Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posX[i] - player.posX > 25) {
-                    monstros.posX[i] -= monstros.velocidadeMovimento;
+                    Movimenta('L', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - player.posY < -25) {
-                    monstros.posY[i] += monstros.velocidadeMovimento;
+                    Movimenta('D', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - player.posY > 25) {
-                    monstros.posY[i] -= monstros.velocidadeMovimento;
+                    Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 }
-            monstros.timerMovimento[i] = 500;
+                //Se o monstro estiver em cima do player, desenterra e fica parado
+                else {
+                    Knockback(&player.posX,&player.posY,monstros.posX[i],monstros.posY[i], 50, 20, mapa);
+                    monstros.enterrado[i] = 0;
+                    monstros.ataqueStun[i] = 50;
+                }
+                monstros.timerMovimento[i] = 500;
             }
+            //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
             else if(monstros.timerMovimento[i] <= 0) {
                 monstros.timerMovimento[i] = 300;
                 monstros.pontoX[i] = monstros.posX[i] + ((rand() % 5) - 2) * 100;
@@ -278,17 +289,18 @@ int main()
             //Se não, move até o ponto e fica parado.
             else if(monstros.timerMovimento[i] <= 300) {
                 if(monstros.posX[i] - monstros.pontoX[i] < -25) {
-                    monstros.posX[i] += monstros.velocidadeMovimento;
+                    Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posX[i] - monstros.pontoX[i] > 25) {
-                    monstros.posX[i] -= monstros.velocidadeMovimento;
+                    Movimenta('L', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - monstros.pontoY[i] < -25) {
-                    monstros.posY[i] += monstros.velocidadeMovimento;
+                    Movimenta('D', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - monstros.pontoY[i] > 25) {
-                    monstros.posY[i] -= monstros.velocidadeMovimento;
+                    Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 }
             }
-            //Decrementa o timer
+            //Decrementa o timer e o stun de ataque
             monstros.timerMovimento[i]--;
+            monstros.ataqueStun[i]--;
         }
 
 
