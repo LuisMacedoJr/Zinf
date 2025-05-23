@@ -8,12 +8,12 @@
 #define LARGURA 1200
 #define ALTURA 800
 #define CELULAMATRIZ 50
-#define MAXMONSTROS 20
+#define MAXMONSTROS 10
 
 struct Player
 {
-    int posX, posY, tamanhoPersonagem;;
-    int velocidadeMovimento;
+    int posX, posY, tamanhoPersonagem, velocidadeMovimento, vidas;
+    char dirMaisRecente;
 };
 
 struct Monstros
@@ -102,6 +102,12 @@ void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
             posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
             DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, BLUE);
         }
+        if (*p == 'V')
+        {
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, PINK);
+        }
     }
 
 }
@@ -122,10 +128,17 @@ void DesenhaMonstros(struct Monstros monstros, struct Player player) {
     }
 }
 
+//Função que desenha a quantidade de vidas do jogador
+void DesenhaVidas(struct Player player) {
+    int i;
+    if(player.vidas > 0)
+        for(i=0;i<player.vidas;i++)
+            DrawRectangle(10+i*52,10,50,50,MAROON);
+}
+
 //Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica)
 void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
 {
-
     switch (direcao)
     {
     case 'U':
@@ -170,7 +183,20 @@ void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
     default:
         break;
     }
+}
 
+//Função que returna 1 caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e 0 caso contrário.
+int DuasTeclas() {
+    int i = 0;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
+        i = 1;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
+        i = 1;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
+        i = 1;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
+        i = 1;
+    return i;
 }
 
 //Aplica knockback ao levar dano. Recebe um int força e tolerancia, a qual indica a que distância do centro é preciso estar para levar knockback em duas direções (genérica)
@@ -186,6 +212,16 @@ void Knockback(int *x1, int *y1, int x2, int y2, int forca, int tolerancia, char
     }
     if(y2 - *y1 < -tolerancia) {
         Movimenta('D',mapa,x1,y1,forca);
+    }
+}
+
+//Função que detecta colisão entre player e o item de vida extra, e deleta o item em caso positivo.
+int ColisaoVida(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player player) {
+    if(mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] == 'V') {
+        mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] = '-';
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -209,11 +245,11 @@ int main()
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-'},
         {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', 'V', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', 'V', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-'},
@@ -225,6 +261,7 @@ int main()
     //Define tamanho e velocidade do jogador
     player.tamanhoPersonagem = CELULAMATRIZ;
     player.velocidadeMovimento = 5;
+    player.vidas = 3;
 
     //Define variáveis dos monstros
     monstros.raioVisao = 200;
@@ -244,14 +281,31 @@ int main()
     while (!WindowShouldClose())
     {
         //Movimento do jogador
-        if(IsKeyDown(KEY_W))
-            Movimenta('U', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
-        if(IsKeyDown(KEY_S))
+        if(!DuasTeclas()) {
+            if(IsKeyDown(KEY_W)) {
+                Movimenta('U', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'U';
+            }
+            if(IsKeyDown(KEY_S)) {
             Movimenta('D', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
-        if(IsKeyDown(KEY_A))
-            Movimenta('L', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
-        if(IsKeyDown(KEY_D))
-            Movimenta('R', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'D';
+            }
+            if(IsKeyDown(KEY_A)) {
+                Movimenta('L', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'L';
+            }
+            if(IsKeyDown(KEY_D)) {
+                Movimenta('R', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'R';
+            }
+        } else {
+            Movimenta(player.dirMaisRecente, mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+        }
+
+        //Detecção de colisão com vida
+        if(ColisaoVida(mapa, player)) {
+            player.vidas++;
+        }
 
 
 
@@ -277,6 +331,7 @@ int main()
                     Knockback(&player.posX,&player.posY,monstros.posX[i],monstros.posY[i], 50, 20, mapa);
                     monstros.enterrado[i] = 0;
                     monstros.ataqueStun[i] = 50;
+                    player.vidas--;
                 }
                 monstros.timerMovimento[i] = 500;
             }
@@ -310,6 +365,7 @@ int main()
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
         DesenhaJogador(player);
         DesenhaMonstros(monstros,player);
+        DesenhaVidas(player);
         DesenhaMapa(mapa);
 
         EndDrawing(); //Finaliza o ambiente de desenho na tela
