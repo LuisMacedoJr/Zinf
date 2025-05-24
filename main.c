@@ -9,11 +9,17 @@
 #define ALTURA 800
 #define CELULAMATRIZ 50
 #define MAXMONSTROS 10
+#define MAXBALAS 3
 
 struct Player
 {
     int posX, posY, tamanhoPersonagem, velocidadeMovimento, vidas;
-    char dirMaisRecente;
+    char dirMaisRecente, armaAtual;
+    //Variável armaAtual:
+    //P = pistola;
+    //C = chicote.
+    int balas;
+    //Número de balas da pistola. Só é relevante quando o jogar está com a pistola.
 };
 
 struct Monstros
@@ -21,6 +27,11 @@ struct Monstros
     int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS], ataqueStun[MAXMONSTROS];
     int velocidadeMovimento, raioVisao;
     float distPlayer[MAXMONSTROS];
+};
+
+struct Balas {
+    int posX[MAXBALAS], posY[MAXBALAS], balaVel;
+    char direcao;
 };
 
 //Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
@@ -136,8 +147,15 @@ void DesenhaVidas(struct Player player) {
             DrawRectangle(10+i*52,10,50,50,MAROON);
 }
 
-//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica)
-void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
+void DesenhaBalas(struct Balas balas) {
+    int i;
+    for(i=0;i<MAXBALAS;i++)
+        if(balas.posX[i] != -1 && balas.posY[i] != -1)
+            DrawRectangle(balas.posX[i],balas.posY[i],CELULAMATRIZ,CELULAMATRIZ,YELLOW);
+}
+
+//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica), retorna 1 se houve colisão.
+int Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
 {
     switch (direcao)
     {
@@ -147,6 +165,9 @@ void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
                  mapa[(*posY - 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P'))
         {
             *posY -= vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
@@ -157,6 +178,9 @@ void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
            )
         {
             *posY += vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
@@ -167,6 +191,9 @@ void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
            )
         {
             *posX -= vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
@@ -177,10 +204,14 @@ void Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
            )
         {
             *posX += vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
     default:
+        return 1;
         break;
     }
 }
@@ -225,11 +256,93 @@ int ColisaoVida(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Pla
     }
 }
 
+//Função que atira a bala da pistola, onde o player está olhando.
+void Atirar(struct Player player, struct Balas balas, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], char *dir) {
+    int i = 0;
+    if(player.dirMaisRecente == 'U' && mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX;
+                posY[i] = player.posY - CELULAMATRIZ;
+                *dir = 'U';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'D' && mapa[(player.posY + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX;
+                posY[i] = player.posY + CELULAMATRIZ;
+                *dir = 'D';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'L' && mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX - CELULAMATRIZ;
+                posY[i] = player.posY;
+                *dir = 'L';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'R' && mapa[player.posY/CELULAMATRIZ][(player.posX + 1)/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX + CELULAMATRIZ;
+                posY[i] = player.posY;
+                *dir = 'R';
+                break;
+            }
+            i++;
+        }
+    }
+}
+
+//Função que seta todas as posições de balas para 0, e a velocidade para 10
+void InicializaBalas(int posX[], int posY[], int *vel) {
+    int i;
+    for(i=0;i<MAXBALAS;i++) {
+        posX[i] = -1;
+        posY[i] = -1;
+    }
+    *vel = 10;
+}
+
+//Função que atualiza a posição das balas dependendo na orientação delas, e checa colisão com monstros/paredes, destruindo a bala e matando os monstros.
+void AtualizaBalas(struct Balas balas, struct Monstros monstros, int posX[], int posY[], int monstrosPosX[], int monstrosPosY[], char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
+    int i, j;
+    for(i=0;i<MAXBALAS;i++) {
+        if(posX[i] != -1 && posY[i] != -1) {
+            Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel);
+            if(Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel)) {
+                posX[i] = -1;
+                posY[i] = -1;
+            }
+            for(j=0;j<MAXMONSTROS;j++) {
+                if(abs(monstrosPosX[j] - posX[i]) < 25 && abs(monstrosPosY[j] - posY[i]) < 25) {
+                    monstrosPosX[j] = -1;
+                    monstrosPosY[j] = -1;
+                    posX[i] = -1;
+                    posY[i] = -1;
+                }
+            }
+        }
+    }
+}
+
 int main()
 {
-    //Criar o player e a lista de monstros:
+    //Criar as estruturas:
     struct Player player;
     struct Monstros monstros;
+    struct Balas balas;
 
     //Variável para loops
     int i;
@@ -242,7 +355,7 @@ int main()
     {
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', 'M', '-', '-', '-', '-'},
         {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', 'V', '-', '-'},
@@ -251,10 +364,10 @@ int main()
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', 'V', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
     };
 
@@ -262,6 +375,11 @@ int main()
     player.tamanhoPersonagem = CELULAMATRIZ;
     player.velocidadeMovimento = 5;
     player.vidas = 3;
+    player.armaAtual = 'P';
+    player.balas = 999;
+
+    //Inicializa as balas
+    InicializaBalas(balas.posX,balas.posY,&balas.balaVel);
 
     //Define variáveis dos monstros
     monstros.raioVisao = 200;
@@ -307,14 +425,21 @@ int main()
             player.vidas++;
         }
 
-
+        //Atirar
+        if(IsKeyPressed(KEY_J) && player.balas > 0) {
+            Atirar(player, balas, mapa, balas.posX, balas.posY, &balas.direcao);
+            player.balas--;
+        }
+        //Mover Balas
+        AtualizaBalas(balas,monstros,balas.posX,balas.posY,monstros.posX,monstros.posY,mapa);
 
         //Lógica Monstros
         //Calcula as distâncias até o player
         DistMonstroPlayer(monstros.posX,monstros.posY,monstros.distPlayer,player,monstros);
         for(i=0;i<monstros.quantidadeMonstros;i++) {
-            //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
-            if(MonstroDeveMover(monstros, player, i) && monstros.ataqueStun[i] <= 0) {
+            if(monstros.posX[i] != -1 && monstros.posY[i] != -1) {
+                //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
+                if(MonstroDeveMover(monstros, player, i) && monstros.ataqueStun[i] <= 0) {
                 //Enterra o monstro
                 monstros.enterrado[i] = 1;
                 if(monstros.posX[i] - player.posX < -25) {
@@ -335,14 +460,14 @@ int main()
                 }
                 monstros.timerMovimento[i] = 500;
             }
-            //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
-            else if(monstros.timerMovimento[i] <= 0) {
+                //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
+                else if(monstros.timerMovimento[i] <= 0) {
                 monstros.timerMovimento[i] = 300;
                 monstros.pontoX[i] = monstros.posX[i] + ((rand() % 5) - 2) * 100;
                 monstros.pontoY[i] = monstros.posY[i] + ((rand() % 5) - 2) * 100;
             }
-            //Se não, move até o ponto e fica parado.
-            else if(monstros.timerMovimento[i] <= 300) {
+                //Se não, move até o ponto e fica parado.
+                else if(monstros.timerMovimento[i] <= 300) {
                 if(monstros.posX[i] - monstros.pontoX[i] < -25) {
                     Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posX[i] - monstros.pontoX[i] > 25) {
@@ -353,9 +478,10 @@ int main()
                     Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 }
             }
-            //Decrementa o timer e o stun de ataque
-            monstros.timerMovimento[i]--;
-            monstros.ataqueStun[i]--;
+                //Decrementa o timer e o stun de ataque
+                monstros.timerMovimento[i]--;
+                monstros.ataqueStun[i]--;
+            }
         }
 
 
@@ -366,6 +492,7 @@ int main()
         DesenhaJogador(player);
         DesenhaMonstros(monstros,player);
         DesenhaVidas(player);
+        DesenhaBalas(balas);
         DesenhaMapa(mapa);
 
         EndDrawing(); //Finaliza o ambiente de desenho na tela
