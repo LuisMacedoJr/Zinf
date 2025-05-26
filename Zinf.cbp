@@ -31,8 +31,31 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="ataque_dano.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ataque_dano.h" />
+		<Unit filename="jogador.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="jogador.h">
+			<Option compile="1" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mapa.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mapa.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="monstros.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="monstros.h" />
+		<Unit filename="variaveis_globais.h">
+			<Option compile="1" />
 		</Unit>
 		<Extensions>
 			<lib_finder disable_auto="1" />
