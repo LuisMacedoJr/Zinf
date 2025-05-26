@@ -8,19 +8,30 @@
 #define LARGURA 1200
 #define ALTURA 800
 #define CELULAMATRIZ 50
-#define MAXMONSTROS 20
+#define MAXMONSTROS 10
+#define MAXBALAS 3
 
 struct Player
 {
-    int posX, posY, tamanhoPersonagem;;
-    int velocidadeMovimento;
+    int posX, posY, tamanhoPersonagem, velocidadeMovimento, vidas;
+    char dirMaisRecente, armaAtual;
+    //Variável armaAtual:
+    //P = pistola;
+    //C = chicote.
+    int balas;
+    //Número de balas da pistola. Só é relevante quando o jogar está com a pistola.
 };
 
 struct Monstros
 {
-    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS];
+    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS], ataqueStun[MAXMONSTROS];
     int velocidadeMovimento, raioVisao;
     float distPlayer[MAXMONSTROS];
+};
+
+struct Balas {
+    int posX[MAXBALAS], posY[MAXBALAS], balaVel;
+    char direcao;
 };
 
 //Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
@@ -41,7 +52,7 @@ void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULA
 }
 
 //Lê o mapa e guarda as posições dos montros nas variáveis posX e posY da estrutura Monstros, além da quantidade de monstros no mapa inteiro
-void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], int enterrado[], int timerMovimento[], int pontoX[], int pontoY[], int *quantidadeMonstros) {
+void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], int enterrado[], int timerMovimento[], int pontoX[], int pontoY[], int ataqueStun[], int *quantidadeMonstros) {
     int i, j, iMonstro = 0;
     for(i=0;i<MAXMONSTROS;i++) {
         posX[i] = -1;
@@ -50,6 +61,7 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX
         timerMovimento[i] = 300;
         pontoX[i] = -1;
         pontoY[i] = -1;
+        ataqueStun[i] = 0;
     }
     for(i=0;i<ALTURA/CELULAMATRIZ;i++) {
         for(j=0;j<LARGURA/CELULAMATRIZ;j++) {
@@ -101,6 +113,12 @@ void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
             posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
             DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, BLUE);
         }
+        if (*p == 'V')
+        {
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, PINK);
+        }
     }
 
 }
@@ -121,76 +139,210 @@ void DesenhaMonstros(struct Monstros monstros, struct Player player) {
     }
 }
 
-//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimento o jogador, com restricao de movimento a obstaculos
-void MovimentaJogador (char direcao, struct Player player, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
-{
+//Função que desenha a quantidade de vidas do jogador
+void DesenhaVidas(struct Player player) {
+    int i;
+    if(player.vidas > 0)
+        for(i=0;i<player.vidas;i++)
+            DrawRectangle(10+i*52,10,50,50,MAROON);
+}
 
+void DesenhaBalas(struct Balas balas) {
+    int i;
+    for(i=0;i<MAXBALAS;i++)
+        if(balas.posX[i] != -1 && balas.posY[i] != -1)
+            DrawRectangle(balas.posX[i],balas.posY[i],CELULAMATRIZ,CELULAMATRIZ,YELLOW);
+}
+
+//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica), retorna 1 se houve colisão.
+int Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
+{
     switch (direcao)
     {
     case 'U':
-        if (player.posY > 0 &&
-                (mapa[(player.posY - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P'))
+        if (*posY > 0 &&
+                (mapa[(*posY - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY - 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P'))
         {
-            *posY -= player.velocidadeMovimento;
+            *posY -= vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
     case 'D':
-        if (player.posY < ALTURA - player.tamanhoPersonagem &&
-                (mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem + 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem - 1)/CELULAMATRIZ] != 'P')
+        if (*posY < ALTURA - CELULAMATRIZ &&
+                (mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posY += player.velocidadeMovimento;
+            *posY += vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
     case 'L':
-        if (player.posX > 0 &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P')
+        if (*posX > 0 &&
+                (mapa[*posY/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posX -= player.velocidadeMovimento;
+            *posX -= vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
     case 'R':
-        if (player.posX < LARGURA - player.tamanhoPersonagem &&
-                (mapa[player.posY/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(player.posY + player.tamanhoPersonagem - 1)/CELULAMATRIZ][(player.posX + player.tamanhoPersonagem + 1)/CELULAMATRIZ] != 'P')
+        if (*posX < LARGURA - CELULAMATRIZ &&
+                (mapa[*posY/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P' &&
+                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P')
            )
         {
-            *posX += player.velocidadeMovimento;
+            *posX += vel;
+            return 0;
+        } else {
+            return 1;
         }
 
         break;
     default:
+        return 1;
         break;
     }
-
 }
 
-//Função que detecta se duas teclas estão sendo pressionadas ao mesmo tempo, e, se sim, normaliza o vetor da velocidade
-//void NormalizaVelocidade(int *vel) {
-//    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
-//        *vel = 2;
-//    else if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
-//        *vel = 2;
-//    else
-//        *vel = 5;
-//}
+//Função que returna 1 caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e 0 caso contrário.
+int DuasTeclas() {
+    int i = 0;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
+        i = 1;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
+        i = 1;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
+        i = 1;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
+        i = 1;
+    return i;
+}
+
+//Aplica knockback ao levar dano. Recebe um int força e tolerancia, a qual indica a que distância do centro é preciso estar para levar knockback em duas direções (genérica)
+void Knockback(int *x1, int *y1, int x2, int y2, int forca, int tolerancia, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
+    if(x2 - *x1 > tolerancia) {
+        Movimenta('L',mapa,x1,y1,forca);
+    }
+    if(x2 - *x1 < -tolerancia) {
+        Movimenta('R',mapa,x1,y1,forca);
+    }
+    if(y2 - *y1 > tolerancia) {
+        Movimenta('U',mapa,x1,y1,forca);
+    }
+    if(y2 - *y1 < -tolerancia) {
+        Movimenta('D',mapa,x1,y1,forca);
+    }
+}
+
+//Função que detecta colisão entre player e o item de vida extra, e deleta o item em caso positivo.
+int ColisaoVida(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player player) {
+    if(mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] == 'V') {
+        mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] = '-';
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+//Função que atira a bala da pistola, onde o player está olhando.
+void Atirar(struct Player player, struct Balas balas, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], char *dir) {
+    int i = 0;
+    if(player.dirMaisRecente == 'U' && mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX;
+                posY[i] = player.posY - CELULAMATRIZ;
+                *dir = 'U';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'D' && mapa[(player.posY + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX;
+                posY[i] = player.posY + CELULAMATRIZ;
+                *dir = 'D';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'L' && mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX - CELULAMATRIZ;
+                posY[i] = player.posY;
+                *dir = 'L';
+                break;
+            }
+            i++;
+        }
+    }
+    if(player.dirMaisRecente == 'R' && mapa[player.posY/CELULAMATRIZ][(player.posX + 1)/CELULAMATRIZ] != 'P') {
+        while (i < 3) {
+            if(posX[i] == -1 || posY[i] == -1) {
+                posX[i] = player.posX + CELULAMATRIZ;
+                posY[i] = player.posY;
+                *dir = 'R';
+                break;
+            }
+            i++;
+        }
+    }
+}
+
+//Função que seta todas as posições de balas para 0, e a velocidade para 10
+void InicializaBalas(int posX[], int posY[], int *vel) {
+    int i;
+    for(i=0;i<MAXBALAS;i++) {
+        posX[i] = -1;
+        posY[i] = -1;
+    }
+    *vel = 10;
+}
+
+//Função que atualiza a posição das balas dependendo na orientação delas, e checa colisão com monstros/paredes, destruindo a bala e matando os monstros.
+void AtualizaBalas(struct Balas balas, struct Monstros monstros, int posX[], int posY[], int monstrosPosX[], int monstrosPosY[], char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
+    int i, j;
+    for(i=0;i<MAXBALAS;i++) {
+        if(posX[i] != -1 && posY[i] != -1) {
+            Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel);
+            if(Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel)) {
+                posX[i] = -1;
+                posY[i] = -1;
+            }
+            for(j=0;j<MAXMONSTROS;j++) {
+                if(abs(monstrosPosX[j] - posX[i]) < 25 && abs(monstrosPosY[j] - posY[i]) < 25) {
+                    monstrosPosX[j] = -1;
+                    monstrosPosY[j] = -1;
+                    posX[i] = -1;
+                    posY[i] = -1;
+                }
+            }
+        }
+    }
+}
 
 int main()
 {
-    //Criar o player e a lista de monstros:
+    //Criar as estruturas:
     struct Player player;
     struct Monstros monstros;
+    struct Balas balas;
 
     //Variável para loops
     int i;
@@ -203,25 +355,31 @@ int main()
     {
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', 'M', '-', '-', '-', '-'},
         {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', 'V', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', 'V', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
     };
 
     //Define tamanho e velocidade do jogador
     player.tamanhoPersonagem = CELULAMATRIZ;
     player.velocidadeMovimento = 5;
+    player.vidas = 3;
+    player.armaAtual = 'P';
+    player.balas = 999;
+
+    //Inicializa as balas
+    InicializaBalas(balas.posX,balas.posY,&balas.balaVel);
 
     //Define variáveis dos monstros
     monstros.raioVisao = 200;
@@ -231,7 +389,7 @@ int main()
     PosicionaJogadorInicialmente(mapa, &player.posX, &player.posY);
 
     //Setar posições iniciais dos monstros
-    CriaMonstros(mapa,monstros.posX,monstros.posY,monstros.enterrado,monstros.timerMovimento,monstros.pontoX,monstros.pontoY,&monstros.quantidadeMonstros);
+    CriaMonstros(mapa,monstros.posX,monstros.posY,monstros.enterrado,monstros.timerMovimento,monstros.pontoX,monstros.pontoY,monstros.ataqueStun,&monstros.quantidadeMonstros);
 
     InitWindow(LARGURA, ALTURA, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(60);// Ajusta a janela para 60 frames por segundo
@@ -241,54 +399,89 @@ int main()
     while (!WindowShouldClose())
     {
         //Movimento do jogador
-        if(IsKeyDown(KEY_W))
-            MovimentaJogador('U', player, mapa, &player.posX, &player.posY);
-        if(IsKeyDown(KEY_S))
-            MovimentaJogador('D', player, mapa, &player.posX, &player.posY);
-        if(IsKeyDown(KEY_A))
-            MovimentaJogador('L', player, mapa, &player.posX, &player.posY);
-        if(IsKeyDown(KEY_D))
-            MovimentaJogador('R', player, mapa, &player.posX, &player.posY);
+        if(!DuasTeclas()) {
+            if(IsKeyDown(KEY_W)) {
+                Movimenta('U', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'U';
+            }
+            if(IsKeyDown(KEY_S)) {
+            Movimenta('D', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'D';
+            }
+            if(IsKeyDown(KEY_A)) {
+                Movimenta('L', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'L';
+            }
+            if(IsKeyDown(KEY_D)) {
+                Movimenta('R', mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+                player.dirMaisRecente = 'R';
+            }
+        } else {
+            Movimenta(player.dirMaisRecente, mapa, &player.posX, &player.posY, player.velocidadeMovimento);
+        }
 
+        //Detecção de colisão com vida
+        if(ColisaoVida(mapa, player)) {
+            player.vidas++;
+        }
 
+        //Atirar
+        if(IsKeyPressed(KEY_J) && player.balas > 0) {
+            Atirar(player, balas, mapa, balas.posX, balas.posY, &balas.direcao);
+            player.balas--;
+        }
+        //Mover Balas
+        AtualizaBalas(balas,monstros,balas.posX,balas.posY,monstros.posX,monstros.posY,mapa);
 
         //Lógica Monstros
         //Calcula as distâncias até o player
         DistMonstroPlayer(monstros.posX,monstros.posY,monstros.distPlayer,player,monstros);
         for(i=0;i<monstros.quantidadeMonstros;i++) {
-            //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
-            if(MonstroDeveMover(monstros, player, i)) {
-            //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
+            if(monstros.posX[i] != -1 && monstros.posY[i] != -1) {
+                //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
+                if(MonstroDeveMover(monstros, player, i) && monstros.ataqueStun[i] <= 0) {
+                //Enterra o monstro
+                monstros.enterrado[i] = 1;
                 if(monstros.posX[i] - player.posX < -25) {
-                    monstros.posX[i] += monstros.velocidadeMovimento;
+                    Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posX[i] - player.posX > 25) {
-                    monstros.posX[i] -= monstros.velocidadeMovimento;
+                    Movimenta('L', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - player.posY < -25) {
-                    monstros.posY[i] += monstros.velocidadeMovimento;
+                    Movimenta('D', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - player.posY > 25) {
-                    monstros.posY[i] -= monstros.velocidadeMovimento;
+                    Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 }
-            monstros.timerMovimento[i] = 500;
+                //Se o monstro estiver em cima do player, desenterra e fica parado
+                else {
+                    Knockback(&player.posX,&player.posY,monstros.posX[i],monstros.posY[i], 50, 20, mapa);
+                    monstros.enterrado[i] = 0;
+                    monstros.ataqueStun[i] = 50;
+                    player.vidas--;
+                }
+                monstros.timerMovimento[i] = 500;
             }
-            else if(monstros.timerMovimento[i] <= 0) {
+                //Se o player não estiver dentro do raio de visão, detecta se o timer de movimento é <= 0. Se sim (o inimigo deve se mover), escolhe um ponto aleatório entre 100 e 200 pixels de sua posição e reseta o timer
+                else if(monstros.timerMovimento[i] <= 0) {
                 monstros.timerMovimento[i] = 300;
                 monstros.pontoX[i] = monstros.posX[i] + ((rand() % 5) - 2) * 100;
                 monstros.pontoY[i] = monstros.posY[i] + ((rand() % 5) - 2) * 100;
             }
-            //Se não, move até o ponto e fica parado.
-            else if(monstros.timerMovimento[i] <= 300) {
+                //Se não, move até o ponto e fica parado.
+                else if(monstros.timerMovimento[i] <= 300) {
                 if(monstros.posX[i] - monstros.pontoX[i] < -25) {
-                    monstros.posX[i] += monstros.velocidadeMovimento;
+                    Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posX[i] - monstros.pontoX[i] > 25) {
-                    monstros.posX[i] -= monstros.velocidadeMovimento;
+                    Movimenta('L', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - monstros.pontoY[i] < -25) {
-                    monstros.posY[i] += monstros.velocidadeMovimento;
+                    Movimenta('D', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 } else if(monstros.posY[i] - monstros.pontoY[i] > 25) {
-                    monstros.posY[i] -= monstros.velocidadeMovimento;
+                    Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
                 }
             }
-            //Decrementa o timer
-            monstros.timerMovimento[i]--;
+                //Decrementa o timer e o stun de ataque
+                monstros.timerMovimento[i]--;
+                monstros.ataqueStun[i]--;
+            }
         }
 
 
@@ -298,6 +491,8 @@ int main()
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
         DesenhaJogador(player);
         DesenhaMonstros(monstros,player);
+        DesenhaVidas(player);
+        DesenhaBalas(balas);
         DesenhaMapa(mapa);
 
         EndDrawing(); //Finaliza o ambiente de desenho na tela
