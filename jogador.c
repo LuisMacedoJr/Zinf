@@ -1,124 +1,182 @@
 #include <stdio.h>
+#include <stdbool.h>
+
 #include "raylib.h"
+
 #include "jogador.h"
 #include "variaveis_globais.h"
 
-
-
 //Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
 
-void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY)
+void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player)
 {
 
     char *p;
+
+    player->hitbox.width = CELULAMATRIZ;
+    player->hitbox.height = CELULAMATRIZ;
 
     for(p = &mapa[0][0]; p <= &mapa[(ALTURA/CELULAMATRIZ) - 1][(LARGURA/CELULAMATRIZ) - 1]; p++)
     {
         if (*p == 'J')
         {
-            *posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
-            *posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+
+            player->hitbox.x = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            player->hitbox.y = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+
         }
     }
 
 }
 
 //Funcao que desenha o jogador
-void DesenhaJogador (struct Player player) {
-    DrawRectangle(player.posX, player.posY, player.tamanhoPersonagem, player.tamanhoPersonagem, LIME);
+void DesenhaJogador (struct Player player)
+{
+    DrawRectangleRec(player.hitbox, LIME);
+}
+
+bool ChecaColisao (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo)
+{
+    int i;
+    bool colisao = false;
+    Rectangle hitbox = player.hitbox;
+
+    switch (tipoObstaculo)
+    {
+    case 'P':
+        for (i = 0; i < numeroDeObstaculos; i ++)
+        {
+            if (obstaculos[i].tipo == 'P')
+            {
+                switch (direcao)
+                {
+                case 'U':
+                    hitbox.y -= 1;
+                    if (CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+                    {
+                        colisao = true;
+                        return colisao;
+                    }
+                    break;
+                case 'L':
+                    hitbox.x -= 1;
+                    if (CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+                    {
+                        colisao = true;
+                        return colisao;
+                    }
+                    break;
+                case 'R':
+                    hitbox.x += 1;
+                    if (CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+                    {
+                        colisao = true;
+                        return colisao;
+                    }
+                    break;
+                case 'D':
+                    hitbox.y += 1;
+                    if (CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+                    {
+                        colisao = true;
+                        return colisao;
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        break;
+    case 'V':
+        for (i = 0; i < numeroDeObstaculos; i++)
+        {
+            if (obstaculos[i].tipo == 'V' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+            {
+                colisao = true;
+                obstaculos[i].tipo = 'E';
+                return colisao;
+            }
+
+        }
+        break;
+    default:
+        break;
+    }
+
+    return colisao;
+
+}
+
+
+
+
+//Função que returna 1 caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e 0 caso contrário.
+
+bool DuasTeclas()
+{
+    bool duasTeclas = false;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
+        duasTeclas = true;
+    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
+        duasTeclas = true;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
+        duasTeclas = true;
+    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
+        duasTeclas = true;
+    return duasTeclas;
 }
 
 //Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica), retorna 1 se houve colisão.
-int Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel)
+void Movimenta (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos)
 {
     switch (direcao)
     {
     case 'U':
-        if (*posY > 0 &&
-                (mapa[(*posY - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(*posY - 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P'))
+        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'U', 'P'))
         {
-            *posY -= vel;
-            return 0;
-        } else {
-            return 1;
+            player->hitbox.y -= player->velocidadeMovimento;
+            player->orientacao = 'U';
         }
-
         break;
     case 'D':
-        if (*posY < ALTURA - CELULAMATRIZ &&
-                (mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][*posX/CELULAMATRIZ] != 'P' &&
-                 mapa[(*posY + CELULAMATRIZ + 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ - 1)/CELULAMATRIZ] != 'P')
-           )
+        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'D', 'P'))
         {
-            *posY += vel;
-            return 0;
-        } else {
-            return 1;
-        }
+            player->hitbox.y += player->velocidadeMovimento;
+            player->orientacao = 'D';
 
+        }
         break;
     case 'L':
-        if (*posX > 0 &&
-                (mapa[*posY/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX - 1)/CELULAMATRIZ] != 'P')
-           )
+        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'L', 'P'))
         {
-            *posX -= vel;
-            return 0;
-        } else {
-            return 1;
-        }
+            player->hitbox.x -= player->velocidadeMovimento;
+            player->orientacao = 'L';
 
+        }
         break;
     case 'R':
-        if (*posX < LARGURA - CELULAMATRIZ &&
-                (mapa[*posY/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P' &&
-                 mapa[(*posY + CELULAMATRIZ - 1)/CELULAMATRIZ][(*posX + CELULAMATRIZ + 1)/CELULAMATRIZ] != 'P')
-           )
+        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'R', 'P'))
         {
-            *posX += vel;
-            return 0;
-        } else {
-            return 1;
-        }
+            player->hitbox.x += player->velocidadeMovimento;
+            player->orientacao = 'R';
 
+        }
         break;
     default:
-        return 1;
         break;
     }
 }
 
-//Função que returna 1 caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e 0 caso contrário.
-int DuasTeclas() {
-    int i = 0;
-    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_A))
-        i = 1;
-    if(IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
-        i = 1;
-    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
-        i = 1;
-    if(IsKeyDown(KEY_S) && IsKeyDown(KEY_D))
-        i = 1;
-    return i;
-}
+
 
 //Função que desenha a quantidade de vidas do jogador
-void DesenhaVidas(struct Player player) {
+void DesenhaVidas(struct Player player)
+{
     int i;
     if(player.vidas > 0)
-        for(i=0;i<player.vidas;i++)
-            DrawRectangle(10+i*52,10,50,50,MAROON);
+        for(i=0; i<player.vidas; i++)
+            DrawRectangle(10+i*52,10,CELULAMATRIZ,CELULAMATRIZ,MAROON);
 }
 
-//Função que detecta colisão entre player e o item de vida extra, e deleta o item em caso positivo.
-int ColisaoVida(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player player) {
-    if(mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] == 'V') {
-        mapa[player.posY/CELULAMATRIZ][player.posX/CELULAMATRIZ] = '-';
-        return 1;
-    } else {
-        return 0;
-    }
-}
 

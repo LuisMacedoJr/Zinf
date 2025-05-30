@@ -2,13 +2,7 @@
 #define ATAQUE_DANO_H_INCLUDED
 
 #include "variaveis_globais.h"
-#include "monstros.h"
-#include "jogador.h"
-
-struct Balas {
-    int posX[MAXBALAS], posY[MAXBALAS], balaVel;
-    char direcao;
-};
+#include "estruturas.h"
 
 void DesenhaBalas(struct Balas balas);
 
