@@ -1,16 +1,18 @@
 # depslib dependency file v1.0
-1748234644 source:c:\users\lhcma\documents\github\zinf\main.c
+1748643407 source:c:\users\lhcma\documents\github\zinf\main.c
 	"raylib.h"
 	<string.h>
 	<stdlib.h>
 	<stdio.h>
 	<math.h>
 	<time.h>
+	<stdbool.h>
 	"jogador.h"
 	"mapa.h"
 	"monstros.h"
 	"ataque_dano.h"
 	"variaveis_globais.h"
+	"estruturas.h"
 
 1748115983 source:c:\users\gabriel\desktop\github\zinf\main.c
 	"raylib.h"
@@ -20,39 +22,50 @@
 	<math.h>
 	<time.h>
 
-1748234567 c:\users\lhcma\documents\github\zinf\jogador.h
+1748641217 c:\users\lhcma\documents\github\zinf\jogador.h
+	<stdbool.h>
 	"variaveis_globais.h"
+	"estruturas.h"
 
-1748234567 source:c:\users\lhcma\documents\github\zinf\jogador.h
+1748641217 source:c:\users\lhcma\documents\github\zinf\jogador.h
+	<stdbool.h>
 	"variaveis_globais.h"
+	"estruturas.h"
 
-1748234566 source:c:\users\lhcma\documents\github\zinf\jogador.c
+1748642887 source:c:\users\lhcma\documents\github\zinf\jogador.c
 	<stdio.h>
+	<stdbool.h>
 	"raylib.h"
 	"jogador.h"
 	"variaveis_globais.h"
 
-1748233122 c:\users\lhcma\documents\github\zinf\variaveis_globais.h
+1748235611 c:\users\lhcma\documents\github\zinf\variaveis_globais.h
 
-1748233122 source:c:\users\lhcma\documents\github\zinf\variaveis_globais.h
+1748235611 source:c:\users\lhcma\documents\github\zinf\variaveis_globais.h
 
-1748234115 source:c:\users\lhcma\documents\github\zinf\mapa.c
+1748641025 source:c:\users\lhcma\documents\github\zinf\mapa.c
 	<stdio.h>
+	<stdbool.h>
 	"raylib.h"
 	"variaveis_globais.h"
 	"mapa.h"
 
-1748234089 source:c:\users\lhcma\documents\github\zinf\mapa.h
+1748635019 source:c:\users\lhcma\documents\github\zinf\mapa.h
 	"variaveis_globais.h"
+	"estruturas.h"
+	"raylib.h"
 
-1748235208 c:\users\lhcma\documents\github\zinf\mapa.h
+1748635019 c:\users\lhcma\documents\github\zinf\mapa.h
 	"variaveis_globais.h"
+	"estruturas.h"
+	"raylib.h"
 
-1748234931 c:\users\lhcma\documents\github\zinf\monstros.h
+1748626526 c:\users\lhcma\documents\github\zinf\monstros.h
 	"variaveis_globais.h"
 	"jogador.h"
+	"estruturas.h"
 
-1748234191 source:c:\users\lhcma\documents\github\zinf\monstros.c
+1748626930 source:c:\users\lhcma\documents\github\zinf\monstros.c
 	<stdio.h>
 	<math.h>
 	"raylib.h"
@@ -60,7 +73,7 @@
 	"monstros.h"
 	"variaveis_globais.h"
 
-1748234826 source:c:\users\lhcma\documents\github\zinf\ataque_dano.c
+1748643355 source:c:\users\lhcma\documents\github\zinf\ataque_dano.c
 	<stdio.h>
 	<math.h>
 	"raylib.h"
@@ -68,9 +81,12 @@
 	"ataque_dano.h"
 	"jogador.h"
 	"monstros.h"
+	"estruturas.h"
 
-1748234895 c:\users\lhcma\documents\github\zinf\ataque_dano.h
+1748626706 c:\users\lhcma\documents\github\zinf\ataque_dano.h
 	"variaveis_globais.h"
-	"monstros.h"
-	"jogador.h"
+	"estruturas.h"
+
+1748643378 c:\users\lhcma\documents\github\zinf\estruturas.h
+	"raylib.h"
 

@@ -3,13 +3,7 @@
 
 #include "variaveis_globais.h"
 #include "jogador.h"
-
-struct Monstros
-{
-    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS], ataqueStun[MAXMONSTROS];
-    int velocidadeMovimento, raioVisao;
-    float distPlayer[MAXMONSTROS];
-};
+#include "estruturas.h"
 
 void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], int enterrado[], int timerMovimento[], int pontoX[], int pontoY[], int ataqueStun[], int *quantidadeMonstros);
 

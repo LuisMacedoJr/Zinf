@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "raylib.h"
 #include "variaveis_globais.h"
@@ -6,10 +7,11 @@
 
 
 //Funcao que dada uma matriz mapa, desenha os obstaculos marcados como P
-void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
+void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int *numeroDeObstaculos)
 {
     char *p;
     int posX, posY;
+    *numeroDeObstaculos = 0;
 
     for(p = &mapa[0][0]; p <= &mapa[(ALTURA/CELULAMATRIZ) - 1][(LARGURA/CELULAMATRIZ) - 1]; p++)
     {
@@ -17,14 +19,55 @@ void DesenhaMapa (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
         {
             posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
             posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
-            DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, BLUE);
+
+            obstaculos[*numeroDeObstaculos].hitbox.x = posX;
+            obstaculos[*numeroDeObstaculos].hitbox.y = posY;
+            obstaculos[*numeroDeObstaculos].hitbox.width = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].hitbox.height = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].tipo = 'P';
+
+            *numeroDeObstaculos += 1;
+
         }
         if (*p == 'V')
         {
             posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
             posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
-            DrawRectangle(posX, posY, CELULAMATRIZ, CELULAMATRIZ, PINK);
+
+            obstaculos[*numeroDeObstaculos].hitbox.x = posX;
+            obstaculos[*numeroDeObstaculos].hitbox.y = posY;
+            obstaculos[*numeroDeObstaculos].hitbox.width = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].hitbox.height = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].tipo = 'V';
+
+
+            *numeroDeObstaculos += 1;
+
         }
     }
 
 }
+
+void DesenhaMapa(struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
+{
+    int i;
+
+    for (i = 0; i < numeroDeObstaculos; i++)
+    {
+
+        switch (obstaculos[i].tipo)
+        {
+        case 'P':
+            DrawRectangleRec(obstaculos[i].hitbox, BROWN);
+            break;
+        case 'V':
+            DrawRectangleRec(obstaculos[i].hitbox, PINK);
+            break;
+        default:
+            break;
+        }
+
+    }
+
+}
+

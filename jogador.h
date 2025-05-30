@@ -1,28 +1,20 @@
 #ifndef JOGADOR_H_INCLUDED
 #define JOGADOR_H_INCLUDED
+
+#include <stdbool.h>
 #include "variaveis_globais.h"
+#include "estruturas.h"
 
-struct Player
-{
-    int posX, posY, tamanhoPersonagem, velocidadeMovimento, vidas;
-    char dirMaisRecente, armaAtual;
-    //Variável armaAtual:
-    //P = pistola;
-    //C = chicote.
-    int balas;
-    //Número de balas da pistola. Só é relevante quando o jogar está com a pistola.
-};
-
-void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY);
+void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player);
 
 void DesenhaJogador (struct Player player);
 
-int Movimenta (char direcao, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int *posX, int *posY, int vel);
+bool ChecaColisao (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo);
 
-int DuasTeclas();
+void Movimenta (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos);
+
+bool DuasTeclas();
 
 void DesenhaVidas(struct Player player);
-
-int ColisaoVida(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player player);
 
 #endif // JOGADOR_H_INCLUDED
