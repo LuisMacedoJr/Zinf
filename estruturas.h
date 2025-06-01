@@ -3,11 +3,16 @@
 
 #include "raylib.h"
 
-struct Monstros
+struct Monstro
 {
-    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento[MAXMONSTROS], ataqueStun[MAXMONSTROS];
+    Rectangle hitbox;
+    int vida;
+    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento, ataqueStun[MAXMONSTROS];
     int velocidadeMovimento, raioVisao;
-    float distPlayer[MAXMONSTROS];
+    char tipo;
+    char orientacao;
+    int forca;
+    float distanciaPlayer;
 };
 
 struct Player

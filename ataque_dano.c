@@ -16,20 +16,44 @@
 //}
 
 //Aplica knockback ao levar dano. Recebe um int força e tolerancia, a qual indica a que distância do centro é preciso estar para levar knockback em duas direções (genérica)
-//void Knockback(int *x1, int *y1, int x2, int y2, int forca, int tolerancia, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
-//    if(x2 - *x1 > tolerancia) {
-//        Movimenta('L',mapa,x1,y1,forca);
-//    }
-//    if(x2 - *x1 < -tolerancia) {
-//        Movimenta('R',mapa,x1,y1,forca);
-//    }
-//    if(y2 - *y1 > tolerancia) {
-//        Movimenta('U',mapa,x1,y1,forca);
-//    }
-//    if(y2 - *y1 < -tolerancia) {
-//        Movimenta('D',mapa,x1,y1,forca);
-//    }
-//}
+void Knockback(struct Monstro monstro, struct Player *player, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
+{
+
+    int i;
+    int forca = monstro.forca;
+
+    if((monstro.hitbox.x >= player->hitbox.x + player->hitbox.width - player->velocidadeMovimento) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaJogador('L', obstaculos, player, numeroDeObstaculos);
+        }
+    }
+    if((monstro.hitbox.x  + monstro.hitbox.width - player->velocidadeMovimento <= player->hitbox.x) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaJogador('R', obstaculos, player, numeroDeObstaculos);
+        }
+    }
+
+    if((monstro.hitbox.y + monstro.hitbox.height - player->velocidadeMovimento <= player->hitbox.y) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaJogador('D', obstaculos, player, numeroDeObstaculos);
+        }
+    }
+    if((monstro.hitbox.y >= player->hitbox.y + player->hitbox.height - player->velocidadeMovimento) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaJogador('U', obstaculos, player, numeroDeObstaculos);
+        }
+    }
+
+
+}
 
 
 //Função que atira a bala da pistola, onde o player está olhando.
@@ -82,9 +106,11 @@
 //}
 
 //Função que seta todas as posições de balas para 0, e a velocidade para 10
-void InicializaBalas(int posX[], int posY[], int *vel) {
+void InicializaBalas(int posX[], int posY[], int *vel)
+{
     int i;
-    for(i=0;i<MAXBALAS;i++) {
+    for(i=0; i<MAXBALAS; i++)
+    {
         posX[i] = -1;
         posY[i] = -1;
     }

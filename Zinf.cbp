@@ -35,6 +35,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ataque_dano.h" />
+		<Unit filename="estruturas.h" />
 		<Unit filename="jogador.c">
 			<Option compilerVar="CC" />
 		</Unit>

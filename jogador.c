@@ -35,7 +35,7 @@ void DesenhaJogador (struct Player player)
     DrawRectangleRec(player.hitbox, LIME);
 }
 
-bool ChecaColisao (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo)
+bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo)
 {
     int i;
     bool colisao = false;
@@ -128,19 +128,19 @@ bool DuasTeclas()
 }
 
 //Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica), retorna 1 se houve colisão.
-void Movimenta (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos)
+void MovimentaJogador (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos)
 {
     switch (direcao)
     {
     case 'U':
-        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'U', 'P'))
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'U', 'P') && player->hitbox.y > 0)
         {
             player->hitbox.y -= player->velocidadeMovimento;
             player->orientacao = 'U';
         }
         break;
     case 'D':
-        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'D', 'P'))
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'D', 'P') && player->hitbox.y + player->hitbox.height < ALTURA)
         {
             player->hitbox.y += player->velocidadeMovimento;
             player->orientacao = 'D';
@@ -148,7 +148,7 @@ void Movimenta (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*
         }
         break;
     case 'L':
-        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'L', 'P'))
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'L', 'P') && player->hitbox.x > 0)
         {
             player->hitbox.x -= player->velocidadeMovimento;
             player->orientacao = 'L';
@@ -156,7 +156,7 @@ void Movimenta (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*
         }
         break;
     case 'R':
-        if (!ChecaColisao(obstaculos, *player, numeroDeObstaculos, 'R', 'P'))
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'R', 'P') && player->hitbox.x + player->hitbox.width < LARGURA)
         {
             player->hitbox.x += player->velocidadeMovimento;
             player->orientacao = 'R';
