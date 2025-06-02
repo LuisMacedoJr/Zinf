@@ -5,10 +5,20 @@
 
 #include "jogador.h"
 #include "variaveis_globais.h"
+#include "monstros.h"
 
-//Funcao que recebe como parametro a matriz mapa e define a posicao inicial (x,y) do jogador conforme o mapa
+//Funcao que inicializa parametros basicos do player
+void CriaPlayer (struct Player *player)
+{
+    player->velocidadeMovimento = 5;
+    player->vidas = 3;
+    player->armaAtual = 'C';
+    player->municao = 999;
+}
 
-void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player)
+
+//Le a matriz e posiciona o jogador inicialmente
+void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player)
 {
 
     char *p;
@@ -22,7 +32,7 @@ void PosicionaJogadorInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULA
         {
 
             player->hitbox.x = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
-            player->hitbox.y = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            player->hitbox.y = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ + ALTURABARRASTATUS;
 
         }
     }
@@ -35,6 +45,7 @@ void DesenhaJogador (struct Player player)
     DrawRectangleRec(player.hitbox, LIME);
 }
 
+//Checa colisao entre a hitbox do player e dos obstaculos
 bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo)
 {
     int i;
@@ -111,8 +122,7 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
 
 
 
-//Função que returna 1 caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e 0 caso contrário.
-
+//Função que retorna true caso duas teclas não opositoras estejam sendo pressionadas ao mesmo tempo, e false caso contrário.
 bool DuasTeclas()
 {
     bool duasTeclas = false;
@@ -127,13 +137,13 @@ bool DuasTeclas()
     return duasTeclas;
 }
 
-//Funcao que recebe uma direcao (U, D, L, R), uma matriz mapa e movimenta um objeto, com restricao de movimento a obstaculos (genérica), retorna 1 se houve colisão.
-void MovimentaJogador (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos)
+//Funcao que recebe uma direcao (U, D, L, R) e movimenta o player, levando em conta colisao com objetos.
+void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player *player, int numeroDeObstaculos)
 {
     switch (direcao)
     {
     case 'U':
-        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'U', 'P') && player->hitbox.y > 0)
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'U', 'P') && player->hitbox.y > ALTURABARRASTATUS)
         {
             player->hitbox.y -= player->velocidadeMovimento;
             player->orientacao = 'U';
@@ -168,15 +178,13 @@ void MovimentaJogador (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAM
     }
 }
 
-
-
-//Função que desenha a quantidade de vidas do jogador
-void DesenhaVidas(struct Player player)
-{
-    int i;
-    if(player.vidas > 0)
-        for(i=0; i<player.vidas; i++)
-            DrawRectangle(10+i*52,10,CELULAMATRIZ,CELULAMATRIZ,MAROON);
-}
+////Função que desenha a quantidade de vidas do jogador (
+//void DesenhaVidas(struct Player player)
+//{
+//    int i;
+//    if(player.vidas > 0)
+//        for(i=0; i<player.vidas; i++)
+//            DrawRectangle(10+i*52,10,CELULAMATRIZ,CELULAMATRIZ,MAROON);
+//}
 
 

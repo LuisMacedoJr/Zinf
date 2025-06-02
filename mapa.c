@@ -6,7 +6,7 @@
 #include "mapa.h"
 
 
-//Funcao que dada uma matriz mapa, desenha os obstaculos marcados como P
+//Funcao que dada uma matriz mapa, preenche um array de obstaculos. P para parede, V para vida
 void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int *numeroDeObstaculos)
 {
     char *p;
@@ -18,7 +18,7 @@ void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struc
         if (*p == 'P')
         {
             posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
-            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ + ALTURABARRASTATUS;
 
             obstaculos[*numeroDeObstaculos].hitbox.x = posX;
             obstaculos[*numeroDeObstaculos].hitbox.y = posY;
@@ -31,7 +31,7 @@ void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struc
         }
         if (*p == 'V')
         {
-            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ + ALTURABARRASTATUS;
             posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
 
             obstaculos[*numeroDeObstaculos].hitbox.x = posX;
@@ -48,6 +48,7 @@ void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struc
 
 }
 
+//Desenha o mapa de acordo com o array de obstaculos previamente preenchido
 void DesenhaMapa(struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
 {
     int i;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "raylib.h"
 #include "variaveis_globais.h"
@@ -8,6 +9,90 @@
 #include "monstros.h"
 #include "estruturas.h"
 
+//Funcao que posiciona o chicote a frente do jogador
+void AtacaChicote(struct Player player, struct Chicote *chicote)
+{
+    if (player.armaAtual == 'C')
+    {
+        float comprimentoChicote = 50;
+        float larguraChicote = 20;
+
+        chicote->ataque = true;
+
+        switch (player.orientacao)
+        {
+        case 'U':
+            chicote->hitbox.width = larguraChicote;
+            chicote->hitbox.height = comprimentoChicote;
+            chicote->hitbox.x = player.hitbox.x + player.hitbox.width/2 - chicote->hitbox.width/2;
+            chicote->hitbox.y = player.hitbox.y - chicote->hitbox.height;
+            break;
+        case 'L':
+            chicote->hitbox.width = comprimentoChicote;
+            chicote->hitbox.height = larguraChicote;
+            chicote->hitbox.x = player.hitbox.x - chicote->hitbox.width;
+            chicote->hitbox.y = player.hitbox.y + player.hitbox.height/2 - chicote->hitbox.height/2;
+            break;
+        case 'D':
+            chicote->hitbox.width = larguraChicote;
+            chicote->hitbox.height = comprimentoChicote;
+            chicote->hitbox.x = player.hitbox.x + player.hitbox.width/2 - chicote->hitbox.width/2;
+            chicote->hitbox.y = player.hitbox.y + chicote->hitbox.height;
+            break;
+        case 'R':
+            chicote->hitbox.width = comprimentoChicote;
+            chicote->hitbox.height = larguraChicote;
+            chicote->hitbox.x = player.hitbox.x + chicote->hitbox.width;
+            chicote->hitbox.y = player.hitbox.y + player.hitbox.height/2 - chicote->hitbox.height/2;
+            break;
+        }
+    }
+
+}
+
+//funcao que desenha o chicote previamente posicionado
+void DesenhaChicote(struct Chicote chicote)
+{
+    if (chicote.ataque)
+    {
+        DrawRectangleRec(chicote.hitbox, YELLOW);
+    }
+}
+
+//Funcao que checa colisao entre a hitbox do chicote e dos monstros. Se sim, decrementa vida do monstro e aplica knockback no mesmo
+bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Chicote *chicote, int numeroDeMonstros, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Player player)
+{
+
+    int i;
+    bool colisao = false;
+    Rectangle hitbox = chicote->hitbox;
+
+    for (i = 0; i < numeroDeMonstros; i ++)
+    {
+        if (monstros[i].vida > 0)
+        {
+            switch (monstros[i].tipo)
+            {
+            case 'M':
+                if (CheckCollisionRecs(hitbox, monstros[i].hitbox) && !monstros[i].stun && chicote->ataque)
+                {
+                    colisao = true;
+                    monstros[i].vida -= 1;
+                    monstros[i].stun = true;
+                    monstros[i].timerStun = 300;
+                    KnockbackMonstro(*chicote, &monstros[i], obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, player);
+                    return colisao;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    return colisao;
+}
+
 //void DesenhaBalas(struct Balas balas) {
 //    int i;
 //    for(i=0;i<MAXBALAS;i++)
@@ -15,8 +100,9 @@
 //            DrawRectangle(balas.posX[i],balas.posY[i],CELULAMATRIZ,CELULAMATRIZ,YELLOW);
 //}
 
-//Aplica knockback ao levar dano. Recebe um int força e tolerancia, a qual indica a que distância do centro é preciso estar para levar knockback em duas direções (genérica)
-void Knockback(struct Monstro monstro, struct Player *player, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
+
+//Aplica knockback no player, definido de acordo com a forca do monstro
+void KnockbackPlayer(struct Monstro monstro, struct Player *player, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
 {
 
     int i;
@@ -26,14 +112,14 @@ void Knockback(struct Monstro monstro, struct Player *player, struct Obstaculo o
     {
         for (i = 0; i < forca; i++)
         {
-            MovimentaJogador('L', obstaculos, player, numeroDeObstaculos);
+            MovimentaPlayer('L', obstaculos, player, numeroDeObstaculos);
         }
     }
     if((monstro.hitbox.x  + monstro.hitbox.width - player->velocidadeMovimento <= player->hitbox.x) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
     {
         for (i = 0; i < forca; i++)
         {
-            MovimentaJogador('R', obstaculos, player, numeroDeObstaculos);
+            MovimentaPlayer('R', obstaculos, player, numeroDeObstaculos);
         }
     }
 
@@ -41,14 +127,54 @@ void Knockback(struct Monstro monstro, struct Player *player, struct Obstaculo o
     {
         for (i = 0; i < forca; i++)
         {
-            MovimentaJogador('D', obstaculos, player, numeroDeObstaculos);
+            MovimentaPlayer('D', obstaculos, player, numeroDeObstaculos);
         }
     }
     if((monstro.hitbox.y >= player->hitbox.y + player->hitbox.height - player->velocidadeMovimento) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
     {
         for (i = 0; i < forca; i++)
         {
-            MovimentaJogador('U', obstaculos, player, numeroDeObstaculos);
+            MovimentaPlayer('U', obstaculos, player, numeroDeObstaculos);
+        }
+    }
+
+
+}
+
+//Aplica knockback no monstro
+void KnockbackMonstro(struct Chicote chicote, struct Monstro *monstro, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, struct Player player)
+{
+
+    int i;
+    int forca = 25;
+
+    if((player.hitbox.x >= monstro->hitbox.x + monstro->hitbox.width - monstro->velocidadeMovimento) && (monstro->hitbox.y < player.hitbox.y + player.hitbox.height) && (monstro->hitbox.y + monstro->hitbox.height > player.hitbox.y))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaMonstro('L', obstaculos, monstro, numeroDeObstaculos, monstros, numeroDeMonstros);
+        }
+    }
+    if((player.hitbox.x  + player.hitbox.width - monstro->velocidadeMovimento <= monstro->hitbox.x) && (monstro->hitbox.y < player.hitbox.y + player.hitbox.height) && (monstro->hitbox.y + monstro->hitbox.height > player.hitbox.y))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaMonstro('R', obstaculos, monstro, numeroDeObstaculos, monstros, numeroDeMonstros);
+        }
+    }
+
+    if((player.hitbox.y + player.hitbox.height - monstro->velocidadeMovimento <= monstro->hitbox.y) && (monstro->hitbox.x < player.hitbox.x + player.hitbox.width) && (monstro->hitbox.x + monstro->hitbox.width > player.hitbox.x))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaMonstro('D', obstaculos, monstro, numeroDeObstaculos, monstros, numeroDeMonstros);
+        }
+    }
+    if((player.hitbox.y >= monstro->hitbox.y + monstro->hitbox.height - monstro->velocidadeMovimento) && (monstro->hitbox.x < player.hitbox.x + player.hitbox.width) && (monstro->hitbox.x + monstro->hitbox.width > player.hitbox.x))
+    {
+        for (i = 0; i < forca; i++)
+        {
+            MovimentaMonstro('U', obstaculos, monstro, numeroDeObstaculos, monstros, numeroDeMonstros);
         }
     }
 
@@ -105,17 +231,17 @@ void Knockback(struct Monstro monstro, struct Player *player, struct Obstaculo o
 //    }
 //}
 
-//Função que seta todas as posições de balas para 0, e a velocidade para 10
-void InicializaBalas(int posX[], int posY[], int *vel)
-{
-    int i;
-    for(i=0; i<MAXBALAS; i++)
-    {
-        posX[i] = -1;
-        posY[i] = -1;
-    }
-    *vel = 10;
-}
+////Função que seta todas as posições de balas para 0, e a velocidade para 10
+//void InicializaBalas(int posX[], int posY[], int *vel)
+//{
+//    int i;
+//    for(i=0; i<MAXBALAS; i++)
+//    {
+//        posX[i] = -1;
+//        posY[i] = -1;
+//    }
+//    *vel = 10;
+//}
 
 //Função que atualiza a posição das balas dependendo na orientação delas, e checa colisão com monstros/paredes, destruindo a bala e matando os monstros.
 //void AtualizaBalas(struct Balas balas, struct Monstros monstros, int posX[], int posY[], int monstrosPosX[], int monstrosPosY[], char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {

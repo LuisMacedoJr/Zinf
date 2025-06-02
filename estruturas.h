@@ -6,28 +6,27 @@
 struct Monstro
 {
     Rectangle hitbox;
-    int vida;
-    int quantidadeMonstros, posX[MAXMONSTROS], posY[MAXMONSTROS], enterrado[MAXMONSTROS], pontoX[MAXMONSTROS], pontoY[MAXMONSTROS], timerMovimento, ataqueStun[MAXMONSTROS];
-    int velocidadeMovimento, raioVisao;
-    char tipo;
-    char orientacao;
-    int forca;
-    float distanciaPlayer;
+    int vida, id, forca;
+    float velocidadeMovimento, raioVisao, timerMovimento, distanciaPlayer, timerStun;
+    char tipo; // 'M' = monstro, 'E' = vazio
+    char orientacao; // 'U' = cima, 'D' = baixo, 'L' = esquerda, 'D' = direita
+    char status; //'E' = esperando, 'M' = Movimentando, 'S' = Stun
+    bool stun;
 };
 
 struct Player
 {
     Rectangle hitbox;
-    int posX, posY, tamanhoPersonagem, velocidadeMovimento, vidas;
+    int velocidadeMovimento, vidas, municao;
     char orientacao, armaAtual;
     //Variável armaAtual:
     //P = pistola;
-    //C = chicote.
-    int balas;
+    //C = chicote;
+    //E = vazio.
     //Número de balas da pistola. Só é relevante quando o jogar está com a pistola.
 };
 
-struct Balas {
+struct Bala {
     int posX[MAXBALAS], posY[MAXBALAS], balaVel;
     char direcao;
 };
@@ -35,6 +34,11 @@ struct Balas {
 struct Obstaculo {
     Rectangle hitbox;
     char tipo;
+};
+
+struct Chicote {
+    Rectangle hitbox;
+    bool ataque;
 };
 
 
