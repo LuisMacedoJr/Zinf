@@ -17,8 +17,9 @@ struct Monstro
 struct Player
 {
     Rectangle hitbox;
-    int velocidadeMovimento, vidas, municao;
+    int velocidadeMovimento, vidas, municao, timerStun;
     char orientacao, armaAtual;
+    bool stun;
     //Variável armaAtual:
     //P = pistola;
     //C = chicote;

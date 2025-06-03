@@ -17,6 +17,8 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
 
 bool DuasTeclas();
 
+void AtualizaStunPlayer (struct Player *player);
+
 void DesenhaVidas(struct Player player);
 
 #endif // JOGADOR_H_INCLUDED

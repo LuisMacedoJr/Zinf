@@ -14,6 +14,8 @@ void CriaPlayer (struct Player *player)
     player->vidas = 3;
     player->armaAtual = 'C';
     player->municao = 999;
+    player->stun = false;
+    player->timerStun = 300;
 }
 
 
@@ -176,6 +178,23 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
     default:
         break;
     }
+}
+
+void AtualizaStunPlayer (struct Player *player)
+{
+
+    if (player->stun)
+    {
+        player->timerStun -= 5;
+    }
+
+    if (player->timerStun <= 0)
+    {
+        player->timerStun = 300;
+        player->stun = false;
+
+    }
+
 }
 
 ////Função que desenha a quantidade de vidas do jogador (

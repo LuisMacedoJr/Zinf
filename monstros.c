@@ -84,7 +84,7 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
 
     for (i = 0; i < numeroDeMonstros; i ++)
     {
-        if (monstros[i].vida > 0)
+        if (monstros[i].vida > 0 && !player->stun)
         {
             switch (monstros[i].tipo)
             {
@@ -93,6 +93,8 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
                 {
                     colisao = true;
                     player->vidas -= 1;
+                    player->stun = true;
+                    player->timerStun = 300;
                     KnockbackPlayer(monstros[i], player, obstaculos, numeroDeObstaculos);
                     return colisao;
                 }

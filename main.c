@@ -153,6 +153,9 @@ int main()
 
         AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
 
+        AtualizaStunPlayer (&player);
+
+
         //Executa movimento setado pelo status e timer
         MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
 
