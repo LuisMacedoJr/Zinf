@@ -17,7 +17,7 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
 
 bool DuasTeclas();
 
-void AtualizaStunPlayer (struct Player *player);
+void AtualizaTimerPlayer (struct Player *player);
 
 void DesenhaVidas(struct Player player);
 

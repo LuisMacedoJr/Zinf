@@ -7,5 +7,7 @@
 #include "estruturas.h"
 
 void DesenhaBarraStatus(struct Player player);
+void DesenhaFimDoNivel();
+void DesenhaGameOver();
 
 #endif // MENU_H_INCLUDED
