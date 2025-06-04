@@ -36,6 +36,11 @@ int main()
     //Cria chicote:
     struct Chicote chicote;
 
+    //Cria array de balas:
+    struct Bala balas[MAXIMODEBALAS];
+    CriaBalas(balas);
+
+
 
 #ifdef DEBUG
 
@@ -55,7 +60,7 @@ int main()
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', 'M', 'M', 'M', '-', '-', '-', '-', '-', '-', '-', '-'},
+        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'V', '-', '-'},
         {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-'},
@@ -83,6 +88,7 @@ int main()
 
     //Preenche array de monstros
     CriaMonstros(mapa, monstros, &numeroDeMonstros);
+    int numeroDeMonstrosVivos = numeroDeMonstros;
 
     InitWindow(LARGURA, ALTURA + ALTURABARRASTATUS, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(FPS);// Ajusta a janela para 60 frames por segundo
@@ -124,9 +130,18 @@ int main()
         {
             AtacaChicote(player, &chicote);
 
-        } else {
+        }
+        else
+        {
             chicote.ataque = false;
         }
+
+        if(IsKeyPressed(KEY_K))
+        {
+            Atira(&player, balas);
+
+        }
+
 
         //Detecção de colisão com vida
         if(ChecaColisaoPlayerObstaculos(obstaculos, player, numeroDeObstaculos, player.orientacao, 'V'))
@@ -134,16 +149,13 @@ int main()
             player.vidas++;
         }
 
-//        //Atirar
-//        if(IsKeyPressed(KEY_J) && player.balas > 0) {
-//            Atirar(player, balas, mapa, balas.posX, balas.posY, &balas.direcao);
-//            player.balas--;
-//        }
 
         //Checa colisao e ataque entre o player e os monstros
         ChecaColisaoPlayerMonstros(monstros, &player, numeroDeMonstros, obstaculos, numeroDeObstaculos);
 
-        ChecaColisaoChicoteMonstros(monstros, &chicote, numeroDeMonstros, obstaculos, numeroDeObstaculos, player);
+        ChecaColisaoChicoteMonstros(monstros, &chicote, numeroDeMonstros, obstaculos, numeroDeObstaculos, &player);
+
+        AtualizaBalas(balas, obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, &player);
 
         //Atualiza valor da distancia de cada monstro em relacao ao player
         AtualizaDistanciaMonstroPlayer(monstros, player, numeroDeMonstros);
@@ -153,50 +165,45 @@ int main()
 
         AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
 
+        AtualizaTimerPlayer (&player);
+
+        AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
+
+
         //Executa movimento setado pelo status e timer
         MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
-
-
-
-//        for(i=0;i<monstros.quantidadeMonstros;i++) {
-//            if(monstros.posX[i] != -1 && monstros.posY[i] != -1) {
-//                //Detecta se o monstro deve mover, e, se sim, move ele até ficar a pelo menos 25 pixels de distância do player, também reseta o timer de movimento
-//                if(MonstroDeveMover(monstros, player, i) && monstros.ataqueStun[i] <= 0) {
-//                //Enterra o monstro
-//                monstros.enterrado[i] = 1;
-//                if(monstros.posX[i] - player.posX < -25) {
-//                    Movimenta('R', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
-//                } else if(monstros.posX[i] - player.posX > 25) {
-//                    Movimenta('L', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
-//                } else if(monstros.posY[i] - player.posY < -25) {
-//                    Movimenta('D', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
-//                } else if(monstros.posY[i] - player.posY > 25) {
-//                    Movimenta('U', mapa, &monstros.posX[i], &monstros.posY[i], monstros.velocidadeMovimento);
-//                }
-//                //Se o monstro estiver em cima do player, desenterra e fica parado
-//                else {
-//                    Knockback(&player.posX,&player.posY,monstros.posX[i],monstros.posY[i], 50, 20, mapa);
-//                    monstros.enterrado[i] = 0;
-//                    monstros.ataqueStun[i] = 50;
-//                    player.vidas--;
-//                }
-//                monstros.timerMovimento[i] = 500;
-//            }
 
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
-        DesenhaJogador(player);
-        DesenhaChicote(chicote);
-        DesenhaMonstros(monstros, numeroDeMonstros);
-//        DesenhaVidas(player);
         DesenhaBarraStatus(player);
-//        DesenhaBalas(balas);
-        DesenhaMapa(obstaculos, numeroDeObstaculos);
+
+
+        if (player.vidas <= 0)
+        {
+            DesenhaGameOver();
+        }
+        else if (numeroDeMonstrosVivos <= 0)
+        {
+            DesenhaFimDoNivel();
+        }
+        else
+        {
+            DesenhaMapa(obstaculos, numeroDeObstaculos);
+            DesenhaJogador(player);
+            DesenhaChicote(chicote);
+            DesenhaMonstros(monstros, numeroDeMonstros);
+            DesenhaBalas(balas);
+        }
+
+
+
+
+
 
 #ifdef DEBUG
 
-        sprintf(distanciaString, "%g", player.hitbox.x);
+        sprintf(distanciaString, "%d", numeroDeMonstrosVivos);
         DrawText(distanciaString, 25, 60, 50, GREEN);
 
         sprintf(timerMovimento, "%g", player.hitbox.y);

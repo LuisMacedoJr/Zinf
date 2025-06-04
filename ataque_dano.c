@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "raylib.h"
 #include "variaveis_globais.h"
@@ -60,7 +62,7 @@ void DesenhaChicote(struct Chicote chicote)
 }
 
 //Funcao que checa colisao entre a hitbox do chicote e dos monstros. Se sim, decrementa vida do monstro e aplica knockback no mesmo
-bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Chicote *chicote, int numeroDeMonstros, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Player player)
+bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Chicote *chicote, int numeroDeMonstros, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Player *player)
 {
 
     int i;
@@ -69,7 +71,7 @@ bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*
 
     for (i = 0; i < numeroDeMonstros; i ++)
     {
-        if (monstros[i].vida > 0)
+        if (monstros[i].vivo)
         {
             switch (monstros[i].tipo)
             {
@@ -78,9 +80,14 @@ bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*
                 {
                     colisao = true;
                     monstros[i].vida -= 1;
+                    if (monstros[i].vida == 0)
+                    {
+                        monstros[i].vivo = false;
+                        player->score += monstros[i].score;
+                    }
                     monstros[i].stun = true;
                     monstros[i].timerStun = 300;
-                    KnockbackMonstro(*chicote, &monstros[i], obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, player);
+                    KnockbackMonstro(*chicote, &monstros[i], obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, *player);
                     return colisao;
                 }
                 break;
@@ -93,13 +100,6 @@ bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*
     return colisao;
 }
 
-//void DesenhaBalas(struct Balas balas) {
-//    int i;
-//    for(i=0;i<MAXBALAS;i++)
-//        if(balas.posX[i] != -1 && balas.posY[i] != -1)
-//            DrawRectangle(balas.posX[i],balas.posY[i],CELULAMATRIZ,CELULAMATRIZ,YELLOW);
-//}
-
 
 //Aplica knockback no player, definido de acordo com a forca do monstro
 void KnockbackPlayer(struct Monstro monstro, struct Player *player, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos)
@@ -107,36 +107,81 @@ void KnockbackPlayer(struct Monstro monstro, struct Player *player, struct Obsta
 
     int i;
     int forca = monstro.forca;
+    int direcao;
+    bool houveMovimento = false;
 
-    if((monstro.hitbox.x >= player->hitbox.x + player->hitbox.width - player->velocidadeMovimento) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
+    if((monstro.hitbox.x + monstro.hitbox.width/2 >= player->hitbox.x + player->hitbox.width - player->velocidadeMovimento) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
     {
         for (i = 0; i < forca; i++)
         {
             MovimentaPlayer('L', obstaculos, player, numeroDeObstaculos);
         }
+        houveMovimento = true;
     }
-    if((monstro.hitbox.x  + monstro.hitbox.width - player->velocidadeMovimento <= player->hitbox.x) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
+    if((monstro.hitbox.x  + monstro.hitbox.width/2 - player->velocidadeMovimento <= player->hitbox.x) && (player->hitbox.y < monstro.hitbox.y + monstro.hitbox.height) && (player->hitbox.y + player->hitbox.height > monstro.hitbox.y))
     {
         for (i = 0; i < forca; i++)
         {
             MovimentaPlayer('R', obstaculos, player, numeroDeObstaculos);
         }
+        houveMovimento = true;
+
     }
 
-    if((monstro.hitbox.y + monstro.hitbox.height - player->velocidadeMovimento <= player->hitbox.y) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
+    if((monstro.hitbox.y + monstro.hitbox.height/2 - player->velocidadeMovimento <= player->hitbox.y) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
     {
         for (i = 0; i < forca; i++)
         {
             MovimentaPlayer('D', obstaculos, player, numeroDeObstaculos);
         }
+        houveMovimento = true;
+
     }
-    if((monstro.hitbox.y >= player->hitbox.y + player->hitbox.height - player->velocidadeMovimento) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
+    if((monstro.hitbox.y + monstro.hitbox.height/2 >= player->hitbox.y + player->hitbox.height - player->velocidadeMovimento) && (player->hitbox.x < monstro.hitbox.x + monstro.hitbox.width) && (player->hitbox.x + player->hitbox.width > monstro.hitbox.x))
     {
         for (i = 0; i < forca; i++)
         {
             MovimentaPlayer('U', obstaculos, player, numeroDeObstaculos);
         }
+        houveMovimento = true;
+
     }
+
+    if (!houveMovimento)
+    {
+        direcao = rand() % 4;
+        switch (direcao)
+        {
+        case 0:
+            for (i = 0; i < forca; i++)
+            {
+                MovimentaPlayer('U', obstaculos, player, numeroDeObstaculos);
+            }
+            break;
+        case 1:
+            for (i = 0; i < forca; i++)
+            {
+                MovimentaPlayer('R', obstaculos, player, numeroDeObstaculos);
+            }
+            break;
+        case 2:
+            for (i = 0; i < forca; i++)
+            {
+                MovimentaPlayer('D', obstaculos, player, numeroDeObstaculos);
+            }
+            break;
+        case 3:
+            for (i = 0; i < forca; i++)
+            {
+                MovimentaPlayer('L', obstaculos, player, numeroDeObstaculos);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+
 
 
 }
@@ -178,8 +223,210 @@ void KnockbackMonstro(struct Chicote chicote, struct Monstro *monstro, struct Ob
         }
     }
 
+}
+
+void CriaBalas(struct Bala balas[MAXIMODEBALAS])
+{
+    int i;
+
+    for (i = 0; i < MAXIMODEBALAS; i++)
+    {
+        balas[i].ataque = false;
+        balas[i].velocidadeBala = 10;
+    }
 
 }
+
+void Atira(struct Player *player, struct Bala balas[MAXIMODEBALAS])
+{
+    bool atirou = false;
+
+    int i;
+    if (player->armaAtual == 'C' && !player->atirando && player->municao > 0)
+    {
+
+        for (i = 0; i < MAXIMODEBALAS; i++)
+        {
+
+            if (!balas[i].ataque && !atirou)
+            {
+                float comprimentoBala = 50;
+                float larguraBala = 20;
+
+                balas[i].ataque = true;
+
+                atirou = true;
+                player->atirando = true;
+                player->timerTiro = 300;
+                player->municao -= 1;
+
+                switch (player->orientacao)
+                {
+                case 'U':
+                    balas[i].orientacao = 'U';
+                    balas[i].hitbox.width = larguraBala;
+                    balas[i].hitbox.height = comprimentoBala;
+                    balas[i].hitbox.x = player->hitbox.x + player->hitbox.width/2 - balas[i].hitbox.width/2;
+                    balas[i].hitbox.y = player->hitbox.y - balas[i].hitbox.height;
+                    break;
+                case 'L':
+                    balas[i].orientacao = 'L';
+                    balas[i].hitbox.width = comprimentoBala;
+                    balas[i].hitbox.height = larguraBala;
+                    balas[i].hitbox.x = player->hitbox.x - balas[i].hitbox.width;
+                    balas[i].hitbox.y = player->hitbox.y + player->hitbox.height/2 - balas[i].hitbox.height/2;
+                    break;
+                case 'D':
+                    balas[i].orientacao = 'D';
+                    balas[i].hitbox.width = larguraBala;
+                    balas[i].hitbox.height = comprimentoBala;
+                    balas[i].hitbox.x = player->hitbox.x + player->hitbox.width/2 - balas[i].hitbox.width/2;
+                    balas[i].hitbox.y = player->hitbox.y + balas[i].hitbox.height;
+                    break;
+                case 'R':
+                    balas[i].orientacao = 'R';
+                    balas[i].hitbox.width = comprimentoBala;
+                    balas[i].hitbox.height = larguraBala;
+                    balas[i].hitbox.x = player->hitbox.x + balas[i].hitbox.width;
+                    balas[i].hitbox.y = player->hitbox.y + player->hitbox.height/2 - balas[i].hitbox.height/2;
+                    break;
+                }
+            }
+        }
+
+    }
+
+}
+
+bool ChecaColisaoBalaObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala bala, int numeroDeObstaculos, char tipoObstaculo)
+{
+    int i;
+    bool colisao = false;
+    Rectangle hitbox = bala.hitbox;
+
+    switch (tipoObstaculo)
+    {
+    case 'P':
+        for (i = 0; i < numeroDeObstaculos; i ++)
+        {
+            if (obstaculos[i].tipo == 'P' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+            {
+
+                colisao = true;
+                return colisao;
+
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    return colisao;
+
+}
+
+
+void MovimentaBala (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala *bala, int numeroDeObstaculos)
+{
+    if(ChecaColisaoBalaObstaculos(obstaculos, *bala, numeroDeObstaculos, 'P')
+            || bala->hitbox.y <= ALTURABARRASTATUS + 10
+            || bala->hitbox.y + bala->hitbox.height >= ALTURA + ALTURABARRASTATUS
+            || bala->hitbox.x <= 0
+            || bala->hitbox.x + bala->hitbox.width >= LARGURA)
+    {
+        bala->ataque = false;
+    }
+    else
+    {
+
+        switch (direcao)
+        {
+        case 'U':
+            bala->hitbox.y -= bala->velocidadeBala;
+            break;
+        case 'D':
+            bala->hitbox.y += bala->velocidadeBala;
+            break;
+        case 'L':
+            bala->hitbox.x -= bala->velocidadeBala;
+            break;
+        case 'R':
+            bala->hitbox.x += bala->velocidadeBala;
+            break;
+        default:
+            break;
+        }
+    }
+
+}
+
+void AtualizaBalas(struct Bala balas[MAXIMODEBALAS], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, struct Player *player)
+{
+    int i;
+
+    for (i = 0; i < MAXIMODEBALAS; i++)
+    {
+        if (balas[i].ataque)
+        {
+            ChecaColisaoBalaMonstros(monstros, &balas[i], numeroDeMonstros, player);
+            MovimentaBala(balas[i].orientacao, obstaculos, &balas[i], numeroDeObstaculos);
+        }
+    }
+
+}
+
+bool ChecaColisaoBalaMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala *bala, int numeroDeMonstros, struct Player *player)
+{
+
+    int i;
+    bool colisao = false;
+    Rectangle hitbox = bala->hitbox;
+
+    for (i = 0; i < numeroDeMonstros; i ++)
+    {
+        if (monstros[i].vida > 0)
+        {
+            switch (monstros[i].tipo)
+            {
+            case 'M':
+                if (CheckCollisionRecs(hitbox, monstros[i].hitbox) && !monstros[i].stun)
+                {
+                    colisao = true;
+                    monstros[i].vida -= 1;
+                    if (monstros[i].vida == 0)
+                    {
+                        monstros[i].vivo = false;
+                        player->score += monstros[i].score;
+                    }
+                    monstros[i].stun = true;
+                    monstros[i].timerStun = 300;
+                    bala->ataque = false;
+                    return colisao;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    return colisao;
+}
+
+void DesenhaBalas (struct Bala balas[MAXIMODEBALAS])
+{
+    int i;
+
+    for (i = 0; i < MAXIMODEBALAS; i++)
+    {
+        if (balas[i].ataque)
+        {
+            DrawRectangleRec(balas[i].hitbox, YELLOW);
+        }
+    }
+}
+
 
 
 //Função que atira a bala da pistola, onde o player está olhando.

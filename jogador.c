@@ -13,7 +13,13 @@ void CriaPlayer (struct Player *player)
     player->velocidadeMovimento = 5;
     player->vidas = 3;
     player->armaAtual = 'C';
-    player->municao = 999;
+    player->municao = 10;
+    player->stun = false;
+    player->timerStun = 300;
+    player->timerTiro = 300;
+    player->atirando = false;
+    player->numeroDeBalasNaTela = 0;
+    player->score = 0;
 }
 
 
@@ -42,7 +48,14 @@ void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAM
 //Funcao que desenha o jogador
 void DesenhaJogador (struct Player player)
 {
-    DrawRectangleRec(player.hitbox, LIME);
+    if (!player.stun)
+    {
+        DrawRectangleRec(player.hitbox, LIME);
+    }
+    else
+    {
+        DrawRectangleRec(player.hitbox, GREEN);
+    }
 }
 
 //Checa colisao entre a hitbox do player e dos obstaculos
@@ -150,7 +163,7 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
         }
         break;
     case 'D':
-        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'D', 'P') && player->hitbox.y + player->hitbox.height < ALTURA)
+        if (!ChecaColisaoPlayerObstaculos(obstaculos, *player, numeroDeObstaculos, 'D', 'P') && player->hitbox.y + player->hitbox.height < ALTURA + ALTURABARRASTATUS)
         {
             player->hitbox.y += player->velocidadeMovimento;
             player->orientacao = 'D';
@@ -178,13 +191,35 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
     }
 }
 
-////Função que desenha a quantidade de vidas do jogador (
-//void DesenhaVidas(struct Player player)
-//{
-//    int i;
-//    if(player.vidas > 0)
-//        for(i=0; i<player.vidas; i++)
-//            DrawRectangle(10+i*52,10,CELULAMATRIZ,CELULAMATRIZ,MAROON);
-//}
+void AtualizaTimerPlayer (struct Player *player)
+{
+
+    if (player->stun)
+    {
+        player->timerStun -= 5;
+    }
+
+    if (player->timerStun <= 0)
+    {
+        player->timerStun = 300;
+        player->stun = false;
+
+    }
+
+    if (player->atirando)
+    {
+        player->timerTiro -= 7;
+    }
+
+    if (player->timerTiro <= 0)
+    {
+        player->timerTiro = 300;
+        player->atirando = false;
+
+    }
+
+}
+
+
 
 

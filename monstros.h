@@ -34,6 +34,9 @@ void AtualizaStatusMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGU
 
 char SorteiaDirecao(struct Monstro monstro, struct Player player);
 
+void AtualizaNumeroDeMonstrosVivos(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, int *numeroDeMonstrosVivos);
+
+
 
 
 

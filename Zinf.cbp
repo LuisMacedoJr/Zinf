@@ -55,6 +55,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="menu.h" />
+		<Unit filename="modo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="modo.h" />
 		<Unit filename="monstros.c">
 			<Option compilerVar="CC" />
 		</Unit>

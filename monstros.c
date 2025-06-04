@@ -39,6 +39,9 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct M
             monstros[*numeroDeMonstros].stun = false;
             monstros[*numeroDeMonstros].status = 'E';
             monstros[*numeroDeMonstros].id = *numeroDeMonstros;
+            monstros[*numeroDeMonstros].score = 10;
+            monstros[*numeroDeMonstros].vivo = true;
+
 
 
             *numeroDeMonstros += 1;
@@ -84,7 +87,7 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
 
     for (i = 0; i < numeroDeMonstros; i ++)
     {
-        if (monstros[i].vida > 0)
+        if (monstros[i].vivo && !player->stun)
         {
             switch (monstros[i].tipo)
             {
@@ -93,6 +96,8 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
                 {
                     colisao = true;
                     player->vidas -= 1;
+                    player->stun = true;
+                    player->timerStun = 300;
                     KnockbackPlayer(monstros[i], player, obstaculos, numeroDeObstaculos);
                     return colisao;
                 }
@@ -129,29 +134,37 @@ void DesenhaMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELU
     for (i = 0; i < numeroDeMonstros; i++)
     {
 
-        if(monstros[i].vida > 0)
+        if(monstros[i].vivo)
         {
-            switch (monstros[i].tipo)
+            if (monstros[i].stun)
             {
-            case 'M':
-                switch (monstros[i].vida)
+                DrawRectangleRec(monstros[i].hitbox, GRAY);
+            }
+            else
+            {
+                switch (monstros[i].tipo)
                 {
-                case 3:
-                    DrawRectangleRec(monstros[i].hitbox, ORANGE);
-                    break;
-                case 2:
-                    DrawRectangleRec(monstros[i].hitbox, RED);
-                    break;
-                case 1:
-                    DrawRectangleRec(monstros[i].hitbox, MAROON);
+                case 'M':
+                    switch (monstros[i].vida)
+                    {
+                    case 3:
+                        DrawRectangleRec(monstros[i].hitbox, ORANGE);
+                        break;
+                    case 2:
+                        DrawRectangleRec(monstros[i].hitbox, RED);
+                        break;
+                    case 1:
+                        DrawRectangleRec(monstros[i].hitbox, MAROON);
+                        break;
+                    default:
+                        break;
+                    }
                     break;
                 default:
                     break;
                 }
-                break;
-            default:
-                break;
             }
+
         }
 
     }
@@ -212,18 +225,6 @@ bool ChecaColisaoMonstroObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMA
             }
         }
         break;
-    case 'V':
-        for (i = 0; i < numeroDeObstaculos; i++)
-        {
-            if (obstaculos[i].tipo == 'V' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
-            {
-                colisao = true;
-                obstaculos[i].tipo = 'E';
-                return colisao;
-            }
-
-        }
-        break;
     default:
         break;
     }
@@ -241,7 +242,7 @@ bool ChecaColisaoEntreMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(L
 
     for (i = 0; i < numeroDeMonstros; i++)
     {
-        if (monstros[i].vida > 0 && i != monstro.id)
+        if (monstros[i].vivo && i != monstro.id)
         {
             switch (monstro.orientacao)
             {
@@ -300,7 +301,7 @@ void MovimentaMonstro (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAM
         }
         break;
     case 'D':
-        if (!ChecaColisaoMonstroObstaculos(obstaculos, *monstro, numeroDeObstaculos, 'D', 'P') && monstro->hitbox.y + monstro->hitbox.height < ALTURA && !ChecaColisaoEntreMonstros(monstros, *monstro, numeroDeMonstros))
+        if (!ChecaColisaoMonstroObstaculos(obstaculos, *monstro, numeroDeObstaculos, 'D', 'P') && monstro->hitbox.y + monstro->hitbox.height < ALTURA + ALTURABARRASTATUS && !ChecaColisaoEntreMonstros(monstros, *monstro, numeroDeMonstros))
         {
             monstro->hitbox.y += monstro->velocidadeMovimento;
             monstro->orientacao = 'D';
@@ -367,7 +368,8 @@ void AtualizaTimerMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGUR
         default:
             break;
         }
-        if (monstros[i].stun) {
+        if (monstros[i].stun)
+        {
             monstros[i].timerStun -= 5;
         }
 
@@ -493,6 +495,7 @@ char SorteiaDirecao(struct Monstro monstro, struct Player player)
     default:
         break;
     }
+    return 'U';
 
 }
 
@@ -504,21 +507,37 @@ void AtualizaStatusMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARG
     for (i = 0; i < numeroDeMonstros; i++)
     {
 
-            if (monstros[i].timerMovimento < 0)
-            {
-                monstros[i].status = 'M';
-                monstros[i].orientacao = SorteiaDirecao(monstros[i], player);
-            }
-            if (monstros[i].timerMovimento >= 300)
-            {
-                monstros[i].status = 'E';
-            }
-            if (monstros[i].timerStun <= 0) {
-                monstros[i].timerStun = 300;
-                monstros[i].stun = false;
+        if (monstros[i].timerMovimento < 0)
+        {
+            monstros[i].status = 'M';
+            monstros[i].orientacao = SorteiaDirecao(monstros[i], player);
+        }
+        if (monstros[i].timerMovimento >= 300)
+        {
+            monstros[i].status = 'E';
+        }
+        if (monstros[i].timerStun <= 0)
+        {
+            monstros[i].timerStun = 300;
+            monstros[i].stun = false;
 
-            }
+        }
 
     }
+
+}
+
+void AtualizaNumeroDeMonstrosVivos(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, int *numeroDeMonstrosVivos){
+    int i;
+
+    int contador = 0;
+
+    for (i = 0; i < numeroDeMonstros; i++) {
+        if (monstros[i].vivo){
+            contador++;
+        }
+    }
+
+    *numeroDeMonstrosVivos = contador;
 
 }
