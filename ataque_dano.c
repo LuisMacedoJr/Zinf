@@ -12,8 +12,7 @@
 #include "estruturas.h"
 
 //Funcao que posiciona o chicote a frente do jogador
-void AtacaChicote(struct Player player, struct Chicote *chicote)
-{
+void AtacaChicote(struct Player player, struct Chicote *chicote) {
     if (player.armaAtual == 'C')
     {
         float comprimentoChicote = 50;

@@ -93,6 +93,11 @@ int main()
     InitWindow(LARGURA, ALTURA + ALTURABARRASTATUS, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(FPS);// Ajusta a janela para 60 frames por segundo
 
+    //Criação das texturas
+    Texture2D TexturaPlayer = LoadTexture("textures/player/empty_handed.png");
+    Texture2D TexturaMonstro = LoadTexture("textures/monstros/snake.png");
+    Texture2D TexturaChao = LoadTexture("textures/ground.png");
+
     //Este laco repete enquanto a janela nao for fechada
     //Utilizamos ele para atualizar o estado do programa / jogo
     while (!WindowShouldClose())
@@ -124,6 +129,11 @@ int main()
             }
 
         }
+        PlayerParado(&player);
+
+        //Atualiza os contadores de frames
+        AtualizaTimerAnimacaoPlayer(&player);
+        AtualizaTimerAnimacaoMonstro(monstros,numeroDeMonstros);
 
         //Ataque com chicote
         if(IsKeyDown(KEY_J))
@@ -169,7 +179,6 @@ int main()
 
         AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
 
-
         //Executa movimento setado pelo status e timer
         MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
 
@@ -189,10 +198,11 @@ int main()
         }
         else
         {
+            DesenhaChao(mapa,TexturaChao);
             DesenhaMapa(obstaculos, numeroDeObstaculos);
-            DesenhaJogador(player);
+            DesenhaJogador(&player,TexturaPlayer);
             DesenhaChicote(chicote);
-            DesenhaMonstros(monstros, numeroDeMonstros);
+            DesenhaMonstro(monstros, TexturaMonstro, numeroDeMonstros);
             DesenhaBalas(balas);
         }
 
