@@ -11,6 +11,62 @@
 #include "ataque_dano.h"
 #include "menu.h"
 
+void IniciaJogo(struct Jogo *jogo){
+    jogo->modoDeJogo = TELAINICIAL;
+    jogo->nivel = 1;
+    jogo->score = 0;
+}
+
+void CriaSeta(struct Seta *seta) {
+    seta->posicao.x = 250;
+    seta->posicao.y = 100;
+    seta->posicao.width = 30;
+    seta->posicao.height = 30;
+    seta->opcao = NOVOJOGO;
+}
+
+void DesenhaSeta(struct Seta seta) {
+    DrawRectangleRec(seta.posicao, BLACK);
+}
+
+void MovimentaSeta(struct Seta *seta) {
+    if (IsKeyPressed(KEY_W) && seta->opcao >= NOVOJOGO) {
+        seta->opcao = seta->opcao + 1;
+        seta->posicao.y = seta->posicao.y - 200;
+    }
+    if (IsKeyPressed(KEY_S) && seta->opcao <= SAIR) {
+        seta->opcao = seta->opcao - 1;
+        seta->posicao.y = seta->posicao.y + 200;
+    }
+}
+
+void DesenhaOpcoesMenuInicial() {
+    char novoJogo[TAMANHOTEXTO] = {"Novo jogo"};
+    char carregarJogo[TAMANHOTEXTO] = {"Carregar jogo"};
+    char ranking[TAMANHOTEXTO] = {"Ranking"};
+    char sair[TAMANHOTEXTO] = {"Sair"};
+
+
+    DrawText(novoJogo, 300, 100, 50, BLACK);
+    DrawText(carregarJogo, 300, 300, 50, BLACK);
+    DrawText(ranking, 300, 500, 50, BLACK);
+    DrawText(sair, 300, 700, 50, BLACK);
+
+
+}
+
+
+void DesenhaTitulo() {
+
+    char texto[TAMANHOTEXTO] = {"ZINF"};
+    char aperteEnter[TAMANHOTEXTO] = {"Pressione Enter para iniciar"};
+
+    DrawText(texto, 300, 300, 100, BLACK);
+    DrawText(aperteEnter, 300, 500, 50, BLACK);
+
+}
+
+
 //Desenha barra superior de acordo com os valores
 void DesenhaBarraStatus(struct Player player) {
 

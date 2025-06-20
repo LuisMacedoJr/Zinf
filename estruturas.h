@@ -3,6 +3,20 @@
 
 #include "raylib.h"
 
+enum Modo {
+    TELAINICIAL,
+    MENUINICIAL,
+    JOGO,
+    FIM
+};
+
+enum Opcoes {
+    NOVOJOGO,
+    CARREGAR,
+    RANKING,
+    SAIR
+};
+
 struct Monstro
 {
     Rectangle hitbox;
@@ -48,6 +62,18 @@ struct Chicote {
     Rectangle hitbox;
     bool ataque;
 };
+
+struct Jogo {
+    int nivel, numeroDeMonstrosVivos, vidasDoPlayer, score;
+    enum Modo modoDeJogo;
+};
+
+struct Seta {
+    Rectangle posicao;
+    enum Opcoes opcao;
+};
+
+
 
 
 #endif // ESTRUTURAS_H_INCLUDED
