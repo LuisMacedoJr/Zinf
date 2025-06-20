@@ -9,7 +9,7 @@ void CriaPlayer (struct Player *player);
 
 void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player);
 
-void DesenhaJogador (struct Player player);
+void DesenhaJogador (struct Player *player, Texture2D playerTexture);
 
 bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Player player, int numeroDeObstaculos, char direcao, char tipoObstaculo);
 
@@ -18,6 +18,10 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
 bool DuasTeclas();
 
 void AtualizaTimerPlayer (struct Player *player);
+
+void AtualizaTimerAnimacaoPlayer(struct Player *player);
+
+void PlayerParado(struct Player *player);
 
 void DesenhaVidas(struct Player player);
 

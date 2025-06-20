@@ -29,6 +29,8 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct M
             monstros[*numeroDeMonstros].hitbox.y = posY;
             monstros[*numeroDeMonstros].hitbox.width = CELULAMATRIZ;
             monstros[*numeroDeMonstros].hitbox.height = CELULAMATRIZ;
+            monstros[*numeroDeMonstros].MonsterFPS = 3;
+            monstros[*numeroDeMonstros].contadorFrame = 0;
             monstros[*numeroDeMonstros].tipo = 'M';
             monstros[*numeroDeMonstros].vida = 3;
             monstros[*numeroDeMonstros].forca = 10;
@@ -111,6 +113,55 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
     return colisao;
 }
 
+//Funcao que desenha o monstro se ele estiver vivo
+void DesenhaMonstro(struct Monstro monstros[], Texture2D monsterTexture, int nMonstros) {
+    int i;
+    for(i=0;i<nMonstros;i++) {
+        if(monstros[i].vida > 0) {
+            if(monstros[i].status == 'M') {
+                switch(monstros[i].orientacao) {
+                    case 'U':
+                        if(monstros[i].contadorFrame > 2)
+                            monstros[i].contadorFrame = 0;
+                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,50,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+                        break;
+                    case 'D':
+                        if(monstros[i].contadorFrame > 2)
+                            monstros[i].contadorFrame = 0;
+                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,150,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+                        break;
+                    case 'L':
+                        if(monstros[i].contadorFrame > 2)
+                            monstros[i].contadorFrame = 0;
+                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,200,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+                        break;
+                    case 'R':
+                        if(monstros[i].contadorFrame > 2)
+                            monstros[i].contadorFrame = 0;
+                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,100,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+                        break;
+                }
+            } else {
+                if(monstros[i].contadorFrame > 8)
+                    monstros[i].contadorFrame = 0;
+                DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,0,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+            }
+        }
+    }
+}
+
+//Diminui o timer de animação do monstro pelo tempo passado entre o ultimo frame e o atual. Se o valor ficar abaixo de 0, reseta para o inverso do fps e aumenta o contador de frames. Basicamente
+//timer representa o tempo que deve passar entre cada frame da animação, por isso que quando o tempo passado for maior do que o timer, ele é resetado e aumenta o contador de frames.
+void AtualizaTimerAnimacaoMonstro(struct Monstro monstros[], int nMonstros) {
+    int i;
+    for(i=0;i<nMonstros;i++) {
+        monstros[i].timerAnimacao -= GetFrameTime();
+        if(monstros[i].timerAnimacao < 0) {
+            monstros[i].contadorFrame++;
+            monstros[i].timerAnimacao = 1/monstros[i].MonsterFPS;
+        }
+    }
+}
 
 
 //Determina se o monstro esta no raio de visao do player
@@ -124,51 +175,6 @@ bool MonstroNoRaioDeVisao(struct Monstro monstro, struct Player player)
     {
         return false;
     }
-}
-
-//Desenha os monstros do array
-void DesenhaMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros)
-{
-    int i;
-
-    for (i = 0; i < numeroDeMonstros; i++)
-    {
-
-        if(monstros[i].vivo)
-        {
-            if (monstros[i].stun)
-            {
-                DrawRectangleRec(monstros[i].hitbox, GRAY);
-            }
-            else
-            {
-                switch (monstros[i].tipo)
-                {
-                case 'M':
-                    switch (monstros[i].vida)
-                    {
-                    case 3:
-                        DrawRectangleRec(monstros[i].hitbox, ORANGE);
-                        break;
-                    case 2:
-                        DrawRectangleRec(monstros[i].hitbox, RED);
-                        break;
-                    case 1:
-                        DrawRectangleRec(monstros[i].hitbox, MAROON);
-                        break;
-                    default:
-                        break;
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-
-        }
-
-    }
-
 }
 
 //Checa se ha colisao entre a hitbox dos monstros e dos osbstaculos
@@ -305,7 +311,6 @@ void MovimentaMonstro (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAM
         {
             monstro->hitbox.y += monstro->velocidadeMovimento;
             monstro->orientacao = 'D';
-
         }
         break;
     case 'L':
@@ -313,7 +318,6 @@ void MovimentaMonstro (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAM
         {
             monstro->hitbox.x -= monstro->velocidadeMovimento;
             monstro->orientacao = 'L';
-
         }
         break;
     case 'R':
@@ -321,7 +325,6 @@ void MovimentaMonstro (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAM
         {
             monstro->hitbox.x += monstro->velocidadeMovimento;
             monstro->orientacao = 'R';
-
         }
         break;
     default:

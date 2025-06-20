@@ -72,3 +72,12 @@ void DesenhaMapa(struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELU
 
 }
 
+//Desenha o chao
+void DesenhaChao(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ],Texture2D textureChao) {
+    int i, j;
+    for(i=0;i<ALTURA/CELULAMATRIZ;i++)
+        for(j=0;j<LARGURA/CELULAMATRIZ;j++)
+            if(mapa[i][j] = '-')
+                    DrawTextureRec(textureChao,(Rectangle){50*(i%2),50*(j%2),50,50},(Vector2){j*50,(i+1)*50},WHITE);
+}
+

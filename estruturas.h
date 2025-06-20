@@ -12,6 +12,8 @@ struct Monstro
     char orientacao; // 'U' = cima, 'D' = baixo, 'L' = esquerda, 'D' = direita
     char status; //'E' = esperando, 'M' = Movimentando, 'S' = Stun
     bool stun, vivo;
+    float timerAnimacao, MonsterFPS;
+    int contadorFrame;
 };
 
 struct Player
@@ -19,8 +21,10 @@ struct Player
     Rectangle hitbox;
     int velocidadeMovimento, vidas, municao, timerStun, numeroDeBalasNaTela, timerTiro;
     char orientacao, armaAtual;
-    bool stun, atirando;
+    bool stun, atirando, movendo;
     int score;
+    float timerAnimacao, PlayerFPS;
+    int contadorFrame;
     //Variável armaAtual:
     //P = pistola;
     //C = chicote;
