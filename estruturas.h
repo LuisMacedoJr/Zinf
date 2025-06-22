@@ -7,15 +7,40 @@ enum Modo {
     TELAINICIAL,
     MENUINICIAL,
     JOGO,
+    PAUSE,
+    NOVOJOGO,
+    CARREGAR,
+    SALVAR,
+    RANKING,
+    GAMEOVER,
+    TELAENTRENIVEIS,
+    SELECIONANOME,
     FIM
 };
 
-enum Opcoes {
-    NOVOJOGO,
-    CARREGAR,
-    RANKING,
+enum OpcoesMenuInicial {
+    MENUINICIAL_NOVOJOGO,
+    MENUINICIAL_CARREGAR,
+    MENUINICIAL_RANKING,
+    MENUINICIAL_SAIR
+};
+
+enum OpcoesMenuPause {
+    MENUPAUSE_VOLTAR,
+    MENUPAUSE_SALVAR,
+    MENUPAUSE_MENUINICIAL,
+    MENUPAUSE_SAIR
+};
+
+enum Saves {
+    SAVE1,
+    SAVE2,
+    SAVE3,
+    SAVE4,
+    SAVE5,
     SAIR
 };
+
 
 struct Monstro
 {
@@ -64,13 +89,24 @@ struct Chicote {
 };
 
 struct Jogo {
-    int nivel, numeroDeMonstrosVivos, vidasDoPlayer, score;
+    int nivel, numeroDeMonstrosVivos, vidasDoPlayer, score, municao;
+    char armaAtual;
+    bool ocupado;
+    char nome[TAMANHOTEXTO];
     enum Modo modoDeJogo;
+    enum Saves saveSlot;
 };
 
 struct Seta {
     Rectangle posicao;
-    enum Opcoes opcao;
+    enum OpcoesMenuInicial opcao;
+    enum OpcoesMenuPause opcaoPause;
+    enum Saves save;
+};
+
+struct Score {
+    char nome[TAMANHOTEXTO];
+    int score;
 };
 
 

@@ -8,22 +8,22 @@
 #include "monstros.h"
 
 //Funcao que inicializa parametros basicos do player
-void CriaPlayer (struct Player *player) {
+void CriaPlayer (struct Player *player, struct Jogo jogo) {
     player->velocidadeMovimento = 5;
     player->movendo = false;
     player->PlayerFPS =  3;
     player->timerAnimacao = 1/player->PlayerFPS;
     player->contadorFrame = 0;
     player->orientacao = 'D';
-    player->vidas = 3;
-    player->armaAtual = 'C';
-    player->municao = 10;
+    player->vidas = jogo.vidasDoPlayer;
+    player->armaAtual = jogo.armaAtual;
+    player->municao = jogo.municao;
     player->stun = false;
     player->timerStun = 300;
     player->timerTiro = 300;
     player->atirando = false;
     player->numeroDeBalasNaTela = 0;
-    player->score = 0;
+    player->score = jogo.score;
 }
 
 

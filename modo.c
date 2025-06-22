@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 
 #include "raylib.h"
@@ -14,14 +15,17 @@
 #include "variaveis_globais.h"
 #include "ataque_dano.h"
 
-void ModoJogo(struct Jogo *jogo)
+void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
 {
 
     //Criar as estruturas:
     struct Player player;
 
     //Preenche o player com valores pre-estabelecidos
-    CriaPlayer(&player);
+    CriaPlayer(&player, *jogo);
+
+    struct Seta seta;
+    CriaSeta(&seta, PAUSE);
 
     //Cria array de obstaculos:
     struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)];
@@ -56,8 +60,6 @@ void ModoJogo(struct Jogo *jogo)
     char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ] = {'\0'};
     LeMapa(*jogo, mapa);
 
-    //Inicializa as balas
-    //InicializaBalas(balas.posX,balas.posY,&balas.balaVel);
 
     //Varre o mapa fornecido e posiciona o jogador inicialmente
     PosicionaPlayerInicialmente(mapa, &player);
@@ -77,34 +79,37 @@ void ModoJogo(struct Jogo *jogo)
 
     //Este laco repete enquanto a janela nao for fechada
     //Utilizamos ele para atualizar o estado do programa / jogo
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && (jogo->modoDeJogo == JOGO || jogo->modoDeJogo == PAUSE))
     {
 
         //Movimento do jogador
-        if(DuasTeclas())
+        if (jogo->modoDeJogo != PAUSE)
         {
-            MovimentaPlayer(player.orientacao, obstaculos, &player, numeroDeObstaculos);
+            if(DuasTeclas())
+            {
+                MovimentaPlayer(player.orientacao, obstaculos, &player, numeroDeObstaculos);
 
-        }
-        else
-        {
-            if(IsKeyDown(KEY_W))
-            {
-                MovimentaPlayer('U', obstaculos, &player, numeroDeObstaculos);
             }
-            if(IsKeyDown(KEY_S))
+            else
             {
-                MovimentaPlayer('D', obstaculos, &player, numeroDeObstaculos);
-            }
-            if(IsKeyDown(KEY_A))
-            {
-                MovimentaPlayer('L', obstaculos, &player, numeroDeObstaculos);
-            }
-            if(IsKeyDown(KEY_D))
-            {
-                MovimentaPlayer('R', obstaculos, &player, numeroDeObstaculos);
-            }
+                if(IsKeyDown(KEY_W))
+                {
+                    MovimentaPlayer('U', obstaculos, &player, numeroDeObstaculos);
+                }
+                if(IsKeyDown(KEY_S))
+                {
+                    MovimentaPlayer('D', obstaculos, &player, numeroDeObstaculos);
+                }
+                if(IsKeyDown(KEY_A))
+                {
+                    MovimentaPlayer('L', obstaculos, &player, numeroDeObstaculos);
+                }
+                if(IsKeyDown(KEY_D))
+                {
+                    MovimentaPlayer('R', obstaculos, &player, numeroDeObstaculos);
+                }
 
+            }
         }
         PlayerParado(&player);
 
@@ -129,6 +134,11 @@ void ModoJogo(struct Jogo *jogo)
 
         }
 
+        if(IsKeyPressed(KEY_P))
+        {
+            jogo->modoDeJogo = PAUSE;
+        }
+
 
         //Detecção de colisão com vida
         if(ChecaColisaoPlayerObstaculos(obstaculos, player, numeroDeObstaculos, player.orientacao, 'V'))
@@ -142,50 +152,88 @@ void ModoJogo(struct Jogo *jogo)
 
         ChecaColisaoChicoteMonstros(monstros, &chicote, numeroDeMonstros, obstaculos, numeroDeObstaculos, &player);
 
-        AtualizaBalas(balas, obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, &player);
+        if (player.vidas <= 0)
+        {
+            jogo->score = player.score;
+            jogo->modoDeJogo = GAMEOVER;
+        }
 
-        //Atualiza valor da distancia de cada monstro em relacao ao player
-        AtualizaDistanciaMonstroPlayer(monstros, player, numeroDeMonstros);
+        if (numeroDeMonstrosVivos <= 0)
+        {
+            jogo->score = player.score;
+            jogo->vidasDoPlayer = player.vidas;
+            jogo->nivel = jogo->nivel + 1;
+            jogo->municao = player.municao;
+            jogo->armaAtual = player.armaAtual;
+            jogo->modoDeJogo = TELAENTRENIVEIS;
+        }
 
-        //Atualiza timer e status dos monstros, baseado no ciclo espera-movimento
-        AtualizaTimerMonstros(monstros, numeroDeMonstros);
+        if (jogo->modoDeJogo != PAUSE)
+        {
+            AtualizaBalas(balas, obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, &player);
 
-        AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
+            //Atualiza valor da distancia de cada monstro em relacao ao player
+            AtualizaDistanciaMonstroPlayer(monstros, player, numeroDeMonstros);
 
-        AtualizaTimerPlayer (&player);
+            //Atualiza timer e status dos monstros, baseado no ciclo espera-movimento
+            AtualizaTimerMonstros(monstros, numeroDeMonstros);
 
-        AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
+            AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
 
-        //Executa movimento setado pelo status e timer
-        MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
+            AtualizaTimerPlayer (&player);
+
+            AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
+
+            //Executa movimento setado pelo status e timer
+            MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
+        }
+        if(jogo->modoDeJogo == PAUSE)
+        {
+            MovimentaSeta(&seta, PAUSE);
+            if (IsKeyPressed(KEY_ENTER))
+            {
+                switch(seta.opcaoPause)
+                {
+                case MENUPAUSE_VOLTAR:
+                    jogo->modoDeJogo = JOGO;
+                    break;
+                case MENUPAUSE_SALVAR:
+                    SalvaJogo(jogosSalvos, *jogo);
+                    break;
+                case MENUPAUSE_MENUINICIAL:
+                    jogo->modoDeJogo = MENUINICIAL;
+                    break;
+                case MENUPAUSE_SAIR:
+                    jogo->modoDeJogo = FIM;
+                    break;
+                default:
+                    break;
+
+                }
+            }
+
+        }
 
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
+
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
         DesenhaBarraStatus(player);
 
 
-        if (player.vidas <= 0)
+
+        DesenhaChao(mapa,TexturaChao);
+        DesenhaMapa(obstaculos, numeroDeObstaculos);
+        DesenhaJogador(&player,TexturaPlayer);
+        DesenhaChicote(chicote);
+        DesenhaMonstro(monstros, TexturaMonstro, numeroDeMonstros);
+        DesenhaBalas(balas);
+
+        if(jogo->modoDeJogo == PAUSE)
         {
-            DesenhaGameOver();
+            DesenhaMenuPause(jogo, player, &seta);
+
         }
-        else if (numeroDeMonstrosVivos <= 0)
-        {
-            DesenhaFimDoNivel();
-        }
-        else
-        {
-            DesenhaChao(mapa,TexturaChao);
-            DesenhaMapa(obstaculos, numeroDeObstaculos);
-            DesenhaJogador(&player,TexturaPlayer);
-            DesenhaChicote(chicote);
-            DesenhaMonstro(monstros, TexturaMonstro, numeroDeMonstros);
-            DesenhaBalas(balas);
-        }
-
-
-
-
 
 
 #ifdef DEBUG
@@ -215,7 +263,7 @@ void ModoTelaInicial(struct Jogo *jogo)
         }
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
-        ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
         DesenhaTitulo();
 
         EndDrawing(); //Finaliza o ambiente de desenho na tela
@@ -226,21 +274,183 @@ void ModoTelaInicial(struct Jogo *jogo)
 void ModoMenuInicial(struct Jogo *jogo)
 {
     struct Seta seta;
-    CriaSeta(&seta);
+    CriaSeta(&seta, MENUINICIAL);
 
     while (jogo->modoDeJogo == MENUINICIAL && !WindowShouldClose())
     {
-        MovimentaSeta(&seta);
+        MovimentaSeta(&seta, MENUINICIAL);
+
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            switch(seta.opcao)
+            {
+            case MENUINICIAL_NOVOJOGO:
+                IniciaJogo(jogo);
+                jogo->modoDeJogo = NOVOJOGO;
+                break;
+            case MENUINICIAL_CARREGAR:
+                jogo->modoDeJogo = CARREGAR;
+                break;
+            case MENUINICIAL_RANKING:
+                jogo->modoDeJogo = RANKING;
+                break;
+            case MENUINICIAL_SAIR:
+                jogo->modoDeJogo = FIM;
+                break;
+            default:
+                break;
+
+            }
+        }
 
         // Atualiza o que eh mostrado na tela a partir do estado do jogo
         BeginDrawing(); //Inicia o ambiente de desenho na tela
-        ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
         DesenhaSeta(seta);
         DesenhaOpcoesMenuInicial();
+
 
         EndDrawing(); //Finaliza o ambiente de desenho na tela
     }
 
 }
+
+void ModoEntreNiveis(struct Jogo *jogo)
+{
+
+
+    while (jogo->modoDeJogo == TELAENTRENIVEIS && !WindowShouldClose())
+    {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            jogo->modoDeJogo = JOGO;
+            break;
+        }
+
+        // Atualiza o que eh mostrado na tela a partir do estado do jogo
+        BeginDrawing(); //Inicia o ambiente de desenho na tela
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
+        DesenhaTelaEntreNiveis(*jogo);
+
+        EndDrawing(); //Finaliza o ambiente de desenho na tela
+    }
+
+}
+
+void ModoSelecionaJogo(struct Jogo *jogo, int modo, struct Jogo jogosSalvos[])
+{
+    struct Seta seta;
+    CriaSeta(&seta, modo);
+
+    while ((jogo->modoDeJogo == NOVOJOGO || jogo->modoDeJogo == CARREGAR || jogo->modoDeJogo == SALVAR) && !WindowShouldClose())
+    {
+        MovimentaSeta(&seta, modo);
+
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            if(seta.save == SAIR) {
+                    jogo->modoDeJogo = MENUINICIAL;
+
+            }
+            if(jogo->modoDeJogo == NOVOJOGO && !jogosSalvos[seta.save].ocupado)
+            {
+                IniciaJogo(jogo);
+                jogo->saveSlot = seta.save;
+                jogo->ocupado = true;
+                jogo->modoDeJogo = SELECIONANOME;
+
+            }
+
+            if(jogo->modoDeJogo == CARREGAR && jogosSalvos[seta.save].ocupado)
+            {
+                CarregaJogo(jogo, jogosSalvos[seta.save]);
+                jogo->saveSlot = seta.save;
+                jogo->modoDeJogo = TELAENTRENIVEIS;
+
+            }
+
+        }
+
+        // Atualiza o que eh mostrado na tela a partir do estado do jogo
+        BeginDrawing(); //Inicia o ambiente de desenho na tela
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
+        DesenhaSeta(seta);
+        DesenhaSaves(jogosSalvos);
+
+
+        EndDrawing(); //Finaliza o ambiente de desenho na tela
+    }
+
+
+}
+
+void ModoSelecionaNome(struct Jogo *jogo)
+{
+    char nomeEscrito[25] = {'\0'};
+    char caractereDigitado;
+    int posicao = 0;
+
+    strncpy(jogo->nome, nomeEscrito, 25);
+
+    while (jogo->modoDeJogo == SELECIONANOME && !WindowShouldClose() && posicao >= 0 && posicao < 25)
+    {
+
+            caractereDigitado = GetCharPressed();
+            if (caractereDigitado >= 32 && caractereDigitado <= 125 && posicao < 19)
+            {
+                jogo->nome[posicao] = caractereDigitado;
+                posicao++;
+            }
+            if (IsKeyPressed(KEY_BACKSPACE) && posicao !=0)
+            {
+                posicao--;
+                jogo->nome[posicao] = '\0';
+            }
+
+            if (IsKeyPressed(KEY_ENTER)) {
+                jogo->modoDeJogo = JOGO;
+            }
+
+
+
+
+
+            // Atualiza o que eh mostrado na tela a partir do estado do jogo
+            BeginDrawing(); //Inicia o ambiente de desenho na tela
+            ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
+
+            DesenhaNome(*jogo);
+
+            EndDrawing(); //Finaliza o ambiente de desenho na tela
+
+    }
+
+}
+
+
+
+
+void ModoGameOver(struct Jogo *jogo)
+{
+    SalvaRanking(*jogo);
+
+    while (jogo->modoDeJogo == GAMEOVER && !WindowShouldClose())
+    {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            jogo->modoDeJogo = TELAINICIAL;
+            break;
+        }
+
+        // Atualiza o que eh mostrado na tela a partir do estado do jogo
+        BeginDrawing(); //Inicia o ambiente de desenho na tela
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
+        DesenhaGameOver();
+
+        EndDrawing(); //Finaliza o ambiente de desenho na tela
+    }
+
+}
+
 
 

@@ -5,7 +5,7 @@
 #include "variaveis_globais.h"
 #include "estruturas.h"
 
-void CriaPlayer (struct Player *player);
+void CriaPlayer (struct Player *player, struct Jogo jogo);
 
 void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Player *player);
 
