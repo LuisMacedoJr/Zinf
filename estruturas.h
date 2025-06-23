@@ -3,6 +3,10 @@
 
 #include "raylib.h"
 
+//Contem as estruturas e enumeracoes utilizadas ao longo do programa
+
+
+//Enumeracoes do modo de jogo
 enum Modo {
     TELAINICIAL,
     MENUINICIAL,
@@ -18,6 +22,7 @@ enum Modo {
     FIM
 };
 
+//Enumeracoes das opcoes do menu inicial
 enum OpcoesMenuInicial {
     MENUINICIAL_NOVOJOGO,
     MENUINICIAL_CARREGAR,
@@ -25,6 +30,8 @@ enum OpcoesMenuInicial {
     MENUINICIAL_SAIR
 };
 
+
+//Enumeracoes do menu de pause
 enum OpcoesMenuPause {
     MENUPAUSE_VOLTAR,
     MENUPAUSE_SALVAR,
@@ -32,6 +39,8 @@ enum OpcoesMenuPause {
     MENUPAUSE_SAIR
 };
 
+
+//Enumeracoes dos jogos salvos
 enum Saves {
     SAVE1,
     SAVE2,
@@ -41,19 +50,21 @@ enum Saves {
     SAIR
 };
 
-
+//Estrutura monstro. Contem os dados pertinentes a cada monstro
 struct Monstro
 {
     Rectangle hitbox;
     int vida, id, forca, score;
     float velocidadeMovimento, raioVisao, timerMovimento, distanciaPlayer, timerStun;
-    char tipo; // 'M' = monstro, 'E' = vazio
-    char orientacao; // 'U' = cima, 'D' = baixo, 'L' = esquerda, 'D' = direita
-    char status; //'E' = esperando, 'M' = Movimentando, 'S' = Stun
+    char tipo; // 'M' = monstro, 'Z' = vazio
+    char orientacao; // 'U' = cima, 'D' = baixo, 'L' = esquerda, 'R' = direita
+    char status; //'E' = esperando, 'M' = Movimentando
     bool stun, vivo;
     float timerAnimacao, MonsterFPS;
     int contadorFrame;
 };
+
+//Estrutura Player. Contem os dados pertinentes ao jogador
 
 struct Player
 {
@@ -64,13 +75,10 @@ struct Player
     int score;
     float timerAnimacao, PlayerFPS;
     int contadorFrame;
-    //Variável armaAtual:
-    //P = pistola;
-    //C = chicote;
-    //E = vazio.
-    //Número de balas da pistola. Só é relevante quando o jogar está com a pistola.
+
 };
 
+//Estrutura relativa a cada projetil
 struct Bala {
     Rectangle hitbox;
     int velocidadeBala;
@@ -78,16 +86,20 @@ struct Bala {
     bool ataque;
 };
 
+//Estrutura que qualifica um objeto
 struct Obstaculo {
     Rectangle hitbox;
-    char tipo;
+    char tipo; //P = Parede, B = Municao, C = Chicote, V = vida
 };
 
+//Estrutura com os dados do chicote
 struct Chicote {
     Rectangle hitbox;
     bool ataque;
 };
 
+
+//Estrutura com os dados principais do jogo. Essa estrutura sera posicionada em um array de jogos no momento do salvamento
 struct Jogo {
     int nivel, numeroDeMonstrosVivos, vidasDoPlayer, score, municao;
     char armaAtual;
@@ -97,6 +109,7 @@ struct Jogo {
     enum Saves saveSlot;
 };
 
+//Estrutura relativa ao seletor nos menus
 struct Seta {
     Rectangle posicao;
     enum OpcoesMenuInicial opcao;
@@ -104,9 +117,11 @@ struct Seta {
     enum Saves save;
 };
 
+//Estrutura que contem uma pontuacao. Essa estrutura sera posicionada em um array de Scores no momento de atualizacao do ranking
 struct Score {
     char nome[TAMANHOTEXTO];
-    int score;
+    int score, nivel;
+    bool ocupado;
 };
 
 

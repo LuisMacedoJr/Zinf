@@ -15,6 +15,9 @@
 #include "variaveis_globais.h"
 #include "ataque_dano.h"
 
+
+
+//Ciclo do modo principal de jogo
 void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
 {
 
@@ -24,6 +27,7 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
     //Preenche o player com valores pre-estabelecidos
     CriaPlayer(&player, *jogo);
 
+    //Cria e preenche a seta (utilizada no menu de pause)
     struct Seta seta;
     CriaSeta(&seta, PAUSE);
 
@@ -43,15 +47,6 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
     CriaBalas(balas);
 
 
-
-#ifdef DEBUG
-
-    char distanciaString[20] = {'\0'};
-    float distanciaFloat;
-
-    char timerMovimento[20] = {'\0'};
-
-#endif // DEBUG
 
     //Inicialização da seed
     srand(time(NULL));
@@ -146,18 +141,32 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
             player.vidas++;
         }
 
+        //Deteccao da colisao com chicote, equipando o jogador com a arma
+        if(ChecaColisaoPlayerObstaculos(obstaculos, player, numeroDeObstaculos, player.orientacao, 'E'))
+        {
+            player.armaAtual = 'C';
+        }
+
+        //Deteccao da colisao com municao, fornecendo 5 balas ao jogador
+        if(ChecaColisaoPlayerObstaculos(obstaculos, player, numeroDeObstaculos, player.orientacao, 'B'))
+        {
+            player.municao += 5;
+        }
+
 
         //Checa colisao e ataque entre o player e os monstros
         ChecaColisaoPlayerMonstros(monstros, &player, numeroDeMonstros, obstaculos, numeroDeObstaculos);
 
         ChecaColisaoChicoteMonstros(monstros, &chicote, numeroDeMonstros, obstaculos, numeroDeObstaculos, &player);
 
+        //Define fim do jogo se o player atingir zero vidas
         if (player.vidas <= 0)
         {
             jogo->score = player.score;
             jogo->modoDeJogo = GAMEOVER;
         }
 
+        //Define passagem de nivel se todos os inimigos estiverem mortos
         if (numeroDeMonstrosVivos <= 0)
         {
             jogo->score = player.score;
@@ -168,8 +177,10 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
             jogo->modoDeJogo = TELAENTRENIVEIS;
         }
 
+
         if (jogo->modoDeJogo != PAUSE)
         {
+            //Atualiza posicao e colisao das balas
             AtualizaBalas(balas, obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, &player);
 
             //Atualiza valor da distancia de cada monstro em relacao ao player
@@ -178,15 +189,20 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
             //Atualiza timer e status dos monstros, baseado no ciclo espera-movimento
             AtualizaTimerMonstros(monstros, numeroDeMonstros);
 
+            //Atualiza o status do monstro (movendo, esperando, stun), de acordo com o timer atualizado
             AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
 
+            //Atualiza timer do player, para fins de stun, uso da pistola
             AtualizaTimerPlayer (&player);
 
+            //Atualiza a variavel numero de monstros vivos
             AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
 
             //Executa movimento setado pelo status e timer
             MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
         }
+
+        //Atualizacoes do modo de pause
         if(jogo->modoDeJogo == PAUSE)
         {
             MovimentaSeta(&seta, PAUSE);
@@ -218,9 +234,8 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
         BeginDrawing(); //Inicia o ambiente de desenho na tela
 
         ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
-        DesenhaBarraStatus(player);
 
-
+        DesenhaBarraStatus(player, *jogo);
 
         DesenhaChao(mapa,TexturaChao);
         DesenhaMapa(obstaculos, numeroDeObstaculos);
@@ -236,22 +251,12 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
         }
 
 
-#ifdef DEBUG
-
-        sprintf(distanciaString, "%d", numeroDeMonstrosVivos);
-        DrawText(distanciaString, 25, 60, 50, GREEN);
-
-        sprintf(timerMovimento, "%g", player.hitbox.y);
-        DrawText(timerMovimento, 25, 120, 50, GREEN);
-
-
-#endif
-
         EndDrawing(); //Finaliza o ambiente de desenho na tela
     }
 
 }
 
+//Ciclo da tela de apresentacao do jogo
 void ModoTelaInicial(struct Jogo *jogo)
 {
 
@@ -271,6 +276,8 @@ void ModoTelaInicial(struct Jogo *jogo)
 
 }
 
+
+//Ciclo do menu inicial, permitindo a selecao das opcoes e atualizacao do modo de jogo
 void ModoMenuInicial(struct Jogo *jogo)
 {
     struct Seta seta;
@@ -315,8 +322,12 @@ void ModoMenuInicial(struct Jogo *jogo)
 
 }
 
-void ModoEntreNiveis(struct Jogo *jogo)
+
+//Ciclo da tela entre cada nivel. Realiza o salvamento automatico do jogo
+void ModoEntreNiveis(struct Jogo *jogo, struct Jogo jogosSalvos[])
 {
+
+    SalvaJogo(jogosSalvos, *jogo);
 
 
     while (jogo->modoDeJogo == TELAENTRENIVEIS && !WindowShouldClose())
@@ -337,6 +348,8 @@ void ModoEntreNiveis(struct Jogo *jogo)
 
 }
 
+
+//Ciclo da tela de selecao de jogos salvos
 void ModoSelecionaJogo(struct Jogo *jogo, int modo, struct Jogo jogosSalvos[])
 {
     struct Seta seta;
@@ -384,6 +397,7 @@ void ModoSelecionaJogo(struct Jogo *jogo, int modo, struct Jogo jogosSalvos[])
 
 }
 
+//Ciclo da selecao de nome do jogador
 void ModoSelecionaNome(struct Jogo *jogo)
 {
     char nomeEscrito[25] = {'\0'};
@@ -408,7 +422,7 @@ void ModoSelecionaNome(struct Jogo *jogo)
             }
 
             if (IsKeyPressed(KEY_ENTER)) {
-                jogo->modoDeJogo = JOGO;
+                jogo->modoDeJogo = TELAENTRENIVEIS;
             }
 
 
@@ -428,11 +442,10 @@ void ModoSelecionaNome(struct Jogo *jogo)
 }
 
 
-
-
-void ModoGameOver(struct Jogo *jogo)
+//Ciclo do game over. Realiza a atualizacao do ranking com o score do jogador
+void ModoGameOver(struct Jogo *jogo, struct Score ranking[])
 {
-    SalvaRanking(*jogo);
+    SalvaRanking(ranking, *jogo);
 
     while (jogo->modoDeJogo == GAMEOVER && !WindowShouldClose())
     {
@@ -451,6 +464,33 @@ void ModoGameOver(struct Jogo *jogo)
     }
 
 }
+
+
+//Ciclo da tela de exibicao do ranking
+void ModoRanking(struct Jogo *jogo, struct Score ranking[])
+{
+
+    while (jogo->modoDeJogo == RANKING && !WindowShouldClose())
+    {
+
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            jogo->modoDeJogo = MENUINICIAL;
+        }
+
+
+        // Atualiza o que eh mostrado na tela a partir do estado do jogo
+        BeginDrawing(); //Inicia o ambiente de desenho na tela
+        ClearBackground(BEIGE); //Limpa a tela e define cor de fundo
+        DesenhaScores(ranking);
+
+
+        EndDrawing(); //Finaliza o ambiente de desenho na tela
+    }
+
+
+}
+
 
 
 

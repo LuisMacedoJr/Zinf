@@ -5,6 +5,8 @@
 #include "estruturas.h"
 #include "raylib.h"
 
+//Funcoes relacionadas a leitura e desenho de mapa
+
 void LeMapa(struct Jogo jogo, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]);
 
 void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int *numeroDeObstaculos);

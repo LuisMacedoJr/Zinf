@@ -5,6 +5,7 @@
 #include "variaveis_globais.h"
 #include "mapa.h"
 
+//Le um arquivo mapaxx.txt, preenchendo uma matriz de caracteres e atualizando o nivel
 void LeMapa(struct Jogo jogo, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ])
 {
     char nomeDoArquivo[20] = {"mapas/mapa00.txt"};
@@ -31,9 +32,11 @@ void LeMapa(struct Jogo jogo, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
     {
         for(j = 0; j < LARGURA/CELULAMATRIZ; j++)
         {
-            do{
-            caractereAtual = fgetc(arquivoMapa);
-            } while (caractereAtual == '\r' || caractereAtual == '\n');
+            do
+            {
+                caractereAtual = fgetc(arquivoMapa);
+            }
+            while (caractereAtual == '\r' || caractereAtual == '\n');
             mapa[i][j] = caractereAtual;
         }
     }
@@ -41,7 +44,7 @@ void LeMapa(struct Jogo jogo, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRI
 }
 
 
-//Funcao que dada uma matriz mapa, preenche um array de obstaculos. P para parede, V para vida
+//Funcao que dada uma matriz mapa, preenche um array de obstaculos. P para parede, V para vida, E para chicote e B para municao
 void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int *numeroDeObstaculos)
 {
     char *p;
@@ -79,6 +82,36 @@ void CriaObstaculos (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struc
             *numeroDeObstaculos += 1;
 
         }
+        if (*p == 'E')
+        {
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ + ALTURABARRASTATUS;
+
+            obstaculos[*numeroDeObstaculos].hitbox.x = posX;
+            obstaculos[*numeroDeObstaculos].hitbox.y = posY;
+            obstaculos[*numeroDeObstaculos].hitbox.width = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].hitbox.height = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].tipo = 'E';
+
+
+            *numeroDeObstaculos += 1;
+
+        }
+        if (*p == 'B')
+        {
+            posX = ((p - &mapa[0][0]) % (LARGURA/CELULAMATRIZ))*CELULAMATRIZ;
+            posY = ((p - &mapa[0][0]) / (LARGURA/CELULAMATRIZ))*CELULAMATRIZ + ALTURABARRASTATUS;
+
+            obstaculos[*numeroDeObstaculos].hitbox.x = posX;
+            obstaculos[*numeroDeObstaculos].hitbox.y = posY;
+            obstaculos[*numeroDeObstaculos].hitbox.width = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].hitbox.height = CELULAMATRIZ;
+            obstaculos[*numeroDeObstaculos].tipo = 'B';
+
+
+            *numeroDeObstaculos += 1;
+
+        }
     }
 
 }
@@ -99,6 +132,12 @@ void DesenhaMapa(struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELU
         case 'V':
             DrawRectangleRec(obstaculos[i].hitbox, PINK);
             break;
+        case 'E':
+            DrawRectangleRec(obstaculos[i].hitbox, YELLOW);
+            break;
+        case 'B':
+            DrawRectangleRec(obstaculos[i].hitbox, DARKGRAY);
+            break;
         default:
             break;
         }
@@ -107,7 +146,7 @@ void DesenhaMapa(struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELU
 
 }
 
-//Desenha o chao
+//Desenha o chao a partir de uma textura
 void DesenhaChao(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ],Texture2D textureChao)
 {
     int i, j;
@@ -119,6 +158,4 @@ void DesenhaChao(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ],Texture2D 
         },WHITE);
 
 }
-
-//void leMapa
 

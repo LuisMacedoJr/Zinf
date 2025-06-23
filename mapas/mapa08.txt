@@ -1,0 +1,16 @@
+                        
+ M  P             P  M  
+  B P             P     
+  PPP             PPP   
+                        
+                        
+  PPP             PPP   
+    P      J      P     
+  M P             P  M  
+  B P             PV    
+  PPP             PPP   
+                        
+  PPP             PPP   
+    P             P     
+ M                   M  
+                        

@@ -27,8 +27,8 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct M
 
             monstros[*numeroDeMonstros].hitbox.x = posX;
             monstros[*numeroDeMonstros].hitbox.y = posY;
-            monstros[*numeroDeMonstros].hitbox.width = CELULAMATRIZ;
-            monstros[*numeroDeMonstros].hitbox.height = CELULAMATRIZ;
+            monstros[*numeroDeMonstros].hitbox.width = 30;
+            monstros[*numeroDeMonstros].hitbox.height = 30;
             monstros[*numeroDeMonstros].MonsterFPS = 3;
             monstros[*numeroDeMonstros].contadorFrame = 0;
             monstros[*numeroDeMonstros].tipo = 'M';
@@ -41,16 +41,14 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct M
             monstros[*numeroDeMonstros].stun = false;
             monstros[*numeroDeMonstros].status = 'E';
             monstros[*numeroDeMonstros].id = *numeroDeMonstros;
-            monstros[*numeroDeMonstros].score = 10;
+            monstros[*numeroDeMonstros].score = (rand() % 100) + 1;
             monstros[*numeroDeMonstros].vivo = true;
-
-
 
             *numeroDeMonstros += 1;
 
         }
 
-    }
+   }
 
 }
 
@@ -113,38 +111,90 @@ bool ChecaColisaoPlayerMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
     return colisao;
 }
 
-//Funcao que desenha o monstro se ele estiver vivo
-void DesenhaMonstro(struct Monstro monstros[], Texture2D monsterTexture, int nMonstros) {
+//Funcao que desenha o monstro se ele estiver vivo, levando em consideracao o status (movimento, stun)
+void DesenhaMonstro(struct Monstro monstros[], Texture2D monsterTexture, int nMonstros)
+{
+    float posicaoX;
+    float posicaoY;
+    Color opacidade = {255, 255, 255, 255};
+
     int i;
-    for(i=0;i<nMonstros;i++) {
-        if(monstros[i].vida > 0) {
-            if(monstros[i].status == 'M') {
-                switch(monstros[i].orientacao) {
-                    case 'U':
-                        if(monstros[i].contadorFrame > 2)
-                            monstros[i].contadorFrame = 0;
-                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,50,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
-                        break;
-                    case 'D':
-                        if(monstros[i].contadorFrame > 2)
-                            monstros[i].contadorFrame = 0;
-                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,150,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
-                        break;
-                    case 'L':
-                        if(monstros[i].contadorFrame > 2)
-                            monstros[i].contadorFrame = 0;
-                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,200,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
-                        break;
-                    case 'R':
-                        if(monstros[i].contadorFrame > 2)
-                            monstros[i].contadorFrame = 0;
-                        DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,100,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
-                        break;
+    for(i=0; i<nMonstros; i++)
+    {
+        if(monstros[i].vida > 0)
+        {
+            posicaoX = monstros[i].hitbox.x - (CELULAMATRIZ - monstros[i].hitbox.width)/2;
+            posicaoY = monstros[i].hitbox.y - (CELULAMATRIZ - monstros[i].hitbox.height)/2;
+            if(monstros[i].stun){
+                opacidade = (Color) {255, 255, 255, 150};
+            } else{
+                opacidade = (Color) {255, 255, 255, 255};
+            }
+
+            if(monstros[i].status == 'M')
+            {
+
+
+                switch(monstros[i].orientacao)
+                {
+                case 'U':
+                    if(monstros[i].contadorFrame > 2)
+                        monstros[i].contadorFrame = 0;
+                    DrawTextureRec(monsterTexture, (Rectangle)
+                    {
+                        50*monstros[i].contadorFrame,50,50,50
+                    }, (Vector2)
+                    {
+                        posicaoX, posicaoY
+                    }, opacidade);
+                    break;
+                case 'D':
+                    if(monstros[i].contadorFrame > 2)
+                        monstros[i].contadorFrame = 0;
+                    DrawTextureRec(monsterTexture, (Rectangle)
+                    {
+                        50*monstros[i].contadorFrame,150,50,50
+                    }, (Vector2)
+                    {
+                        posicaoX, posicaoY
+                    }, opacidade);
+                    break;
+                case 'L':
+                    if(monstros[i].contadorFrame > 2)
+                        monstros[i].contadorFrame = 0;
+                    DrawTextureRec(monsterTexture, (Rectangle)
+                    {
+                        50*monstros[i].contadorFrame,200,50,50
+                    }, (Vector2)
+                    {
+                        posicaoX, posicaoY
+                    }, opacidade);
+                    break;
+                case 'R':
+                    if(monstros[i].contadorFrame > 2)
+                        monstros[i].contadorFrame = 0;
+                    DrawTextureRec(monsterTexture, (Rectangle)
+                    {
+                        50*monstros[i].contadorFrame,100,50,50
+                    }, (Vector2)
+                    {
+                        posicaoX, posicaoY
+                    }, opacidade);
+                    break;
                 }
-            } else {
+            }
+            else
+            {
                 if(monstros[i].contadorFrame > 8)
                     monstros[i].contadorFrame = 0;
-                DrawTextureRec(monsterTexture, (Rectangle){50*monstros[i].contadorFrame,0,50,50}, (Vector2){monstros[i].hitbox.x, monstros[i].hitbox.y}, WHITE);
+
+                DrawTextureRec(monsterTexture, (Rectangle)
+                {
+                    50*monstros[i].contadorFrame,0,50,50
+                }, (Vector2)
+                {
+                    posicaoX, posicaoY
+                }, opacidade);
             }
         }
     }
@@ -152,11 +202,14 @@ void DesenhaMonstro(struct Monstro monstros[], Texture2D monsterTexture, int nMo
 
 //Diminui o timer de animação do monstro pelo tempo passado entre o ultimo frame e o atual. Se o valor ficar abaixo de 0, reseta para o inverso do fps e aumenta o contador de frames. Basicamente
 //timer representa o tempo que deve passar entre cada frame da animação, por isso que quando o tempo passado for maior do que o timer, ele é resetado e aumenta o contador de frames.
-void AtualizaTimerAnimacaoMonstro(struct Monstro monstros[], int nMonstros) {
+void AtualizaTimerAnimacaoMonstro(struct Monstro monstros[], int nMonstros)
+{
     int i;
-    for(i=0;i<nMonstros;i++) {
+    for(i=0; i<nMonstros; i++)
+    {
         monstros[i].timerAnimacao -= GetFrameTime();
-        if(monstros[i].timerAnimacao < 0) {
+        if(monstros[i].timerAnimacao < 0)
+        {
             monstros[i].contadorFrame++;
             monstros[i].timerAnimacao = 1/monstros[i].MonsterFPS;
         }
@@ -200,6 +253,7 @@ bool ChecaColisaoMonstroObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMA
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.y += 1;
                     break;
                 case 'L':
                     hitbox.x -= 1;
@@ -208,6 +262,7 @@ bool ChecaColisaoMonstroObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMA
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.x += 1;
                     break;
                 case 'R':
                     hitbox.x += 1;
@@ -216,6 +271,7 @@ bool ChecaColisaoMonstroObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMA
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.x -= 1;
                     break;
                 case 'D':
                     hitbox.y += 1;
@@ -224,6 +280,7 @@ bool ChecaColisaoMonstroObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMA
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.y -= 1;
                     break;
                 default:
                     break;
@@ -259,6 +316,7 @@ bool ChecaColisaoEntreMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(L
                     colisao = true;
                     return colisao;
                 }
+                hitbox.y += 1;
                 break;
             case 'L':
                 hitbox.x -= 1;
@@ -267,6 +325,7 @@ bool ChecaColisaoEntreMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(L
                     colisao = true;
                     return colisao;
                 }
+                hitbox.x += 1;
                 break;
             case 'R':
                 hitbox.x += 1;
@@ -275,6 +334,7 @@ bool ChecaColisaoEntreMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(L
                     colisao = true;
                     return colisao;
                 }
+                hitbox.x -= 1;
                 break;
             case 'D':
                 hitbox.y += 1;
@@ -283,6 +343,7 @@ bool ChecaColisaoEntreMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(L
                     colisao = true;
                     return colisao;
                 }
+                hitbox.y -= 1;
                 break;
             default:
                 break;
@@ -353,7 +414,7 @@ void MovimentoAutomaticoMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(
 
 }
 
-//Atualiz o timer de movimento e stun de cada monstro
+//Atualiza o timer de movimento e stun de cada monstro
 void AtualizaTimerMonstros(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros)
 {
     int i;
@@ -530,13 +591,18 @@ void AtualizaStatusMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARG
 
 }
 
-void AtualizaNumeroDeMonstrosVivos(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, int *numeroDeMonstrosVivos){
+
+//Atualiza a contagem de monstros vivos. Utilizado para definir o fim de cada nivel
+void AtualizaNumeroDeMonstrosVivos(struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, int *numeroDeMonstrosVivos)
+{
     int i;
 
     int contador = 0;
 
-    for (i = 0; i < numeroDeMonstros; i++) {
-        if (monstros[i].vivo){
+    for (i = 0; i < numeroDeMonstros; i++)
+    {
+        if (monstros[i].vivo)
+        {
             contador++;
         }
     }

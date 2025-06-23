@@ -12,18 +12,23 @@
 #include "ataque_dano.h"
 #include "menu.h"
 
+// Funcao que preenche a estrutura jogo, que sera usada ao longo do ciclo para definir o modo de jogo atual, o nivel,
+// score e demais variaveis que transcendem um modo especifico de jogo
 void IniciaJogo(struct Jogo *jogo)
 {
     jogo->modoDeJogo = TELAINICIAL;
     jogo->nivel = 1;
     jogo->score = 0;
     jogo->vidasDoPlayer = 3;
-    jogo->municao = 5;
-    jogo->armaAtual = 'C';
+    jogo->municao = 0;
+    jogo->armaAtual = 'E';
 }
+
+//Carrega um jogo salvo
 
 void CarregaJogo(struct Jogo *jogo, struct Jogo jogoSalvo)
 {
+    strncpy(jogo->nome, jogoSalvo.nome, 25);
     jogo->nivel = jogoSalvo.nivel;
     jogo->score = jogoSalvo.score;
     jogo->vidasDoPlayer = jogoSalvo.vidasDoPlayer;
@@ -31,6 +36,21 @@ void CarregaJogo(struct Jogo *jogo, struct Jogo jogoSalvo)
     jogo->armaAtual = jogoSalvo.armaAtual;
 }
 
+//Salva jogo atual no arquivo de jogos salvos
+
+void SalvaJogo(struct Jogo jogosSalvos[], struct Jogo jogo)
+{
+    FILE *arquivoSave = fopen("save.bin", "wb");
+
+    jogosSalvos[jogo.saveSlot] = jogo;
+
+    fwrite(jogosSalvos, sizeof(struct Jogo), 5, arquivoSave);
+
+    fclose(arquivoSave);
+}
+
+
+//Carrega um arquivo de save, que contem um array de Jogos. Caso ele nao exista, cria um arquivo com um array de jogos vazios.
 void CarregaArquivoSave(struct Jogo jogosSalvos[])
 {
     int i;
@@ -77,55 +97,32 @@ void CarregaArquivoSave(struct Jogo jogosSalvos[])
     fclose(arquivoSaveLeitura);
 }
 
-void SalvaJogo(struct Jogo jogosSalvos[], struct Jogo jogo)
-{
-    FILE *arquivoSave = fopen("save.bin", "wb");
-
-    jogosSalvos[jogo.saveSlot] = jogo;
-
-    fwrite(jogosSalvos, sizeof(struct Jogo), 5, arquivoSave);
-
-    fclose(arquivoSave);
-}
 
 
-
-
+//Desenha os elementos de um save na tela
 void DesenhaSaveSlot(struct Jogo jogo, int posicaoY)
 {
 
     char saveNome[TAMANHOTEXTO] = {'\0'};
-    strcpy(saveNome, jogo.nome);
+    strncpy(saveNome, jogo.nome, 25);
     char saveNivel[TAMANHOTEXTO];
-    sprintf(saveNivel, "%d", jogo.nivel);
+    sprintf(saveNivel, "Nivel %d", jogo.nivel);
     char saveVidas[TAMANHOTEXTO];
-    sprintf(saveVidas, "%d", jogo.vidasDoPlayer);
+    sprintf(saveVidas, "Vidas %d", jogo.vidasDoPlayer);
     char saveScore[TAMANHOTEXTO];
-    sprintf(saveScore, "%d", jogo.score);
+    sprintf(saveScore, "Score %d", jogo.score);
 
 
     DrawText(saveNome, 300, posicaoY, 50, BLACK);
     DrawText(saveNivel, 300, posicaoY + 55, 40, BLACK);
-    DrawText(saveVidas, 400, posicaoY + 55, 40, BLACK);
-    DrawText(saveScore, 600, posicaoY + 55, 40, BLACK);
+    DrawText(saveVidas, 500, posicaoY + 55, 40, BLACK);
+    DrawText(saveScore, 700, posicaoY + 55, 40, BLACK);
 
 
 }
 
-void DesenhaNome(struct Jogo jogo)
-{
-    char saveNome[25] = {'\0'};
-    strncpy(saveNome, jogo.nome, 25);
-    char texto[TAMANHOTEXTO] = {"Digite seu nome"};
 
-
-    DrawText(texto, 350, 200, 50, BLACK);
-    DrawText(saveNome, 300, 450, 50, BLACK);
-
-}
-
-
-
+//Desenha os save slots na tela
 void DesenhaSaves(struct Jogo jogosSalvos[])
 {
 
@@ -140,6 +137,7 @@ void DesenhaSaves(struct Jogo jogosSalvos[])
     {
         if (jogosSalvos[i].ocupado)
         {
+
             DesenhaSaveSlot(jogosSalvos[i], posicaoY);
         }
         else
@@ -159,10 +157,167 @@ void DesenhaSaves(struct Jogo jogosSalvos[])
 
 
 
+//Carrega um arquivo de ranking, que contem um array de Scores. Caso ele nao exista, cria um arquivo com um array de scores vazios.
+void CarregaArquivoRanking(struct Score ranking[])
+{
+    int i;
+
+    struct Score rankingTemp[5];
+
+    FILE *arquivoRankingLeitura = fopen("ranking.bin", "rb");
+
+    if (arquivoRankingLeitura == NULL)
+    {
+        for (i = 0; i <5; i++)
+        {
+            ranking[i].ocupado = false;
+        }
+
+
+        FILE *arquivoRankingEscrita = fopen("ranking.bin", "wb");
+
+        fwrite(ranking, sizeof(struct Score), 5, arquivoRankingEscrita);
+
+        fclose(arquivoRankingEscrita);
+
+    }
+    else
+    {
+
+        fread(rankingTemp, sizeof(struct Score), 5, arquivoRankingLeitura);
+
+        for(i = 0; i < 5; i++)
+        {
+            if (rankingTemp[i].ocupado)
+            {
+                ranking[i] = rankingTemp[i];
+            }
+            else
+            {
+                ranking[i].ocupado = false;
+            }
+
+        }
+
+    }
+
+    fclose(arquivoRankingLeitura);
+
+}
+
+//Salva array de Scores (ranking) no arquivo binario
+void SalvaRanking(struct Score ranking[], struct Jogo jogo)
+{
+    FILE *arquivoRanking = fopen("ranking.bin", "wb");
+
+    struct Score scoreAtual;
+
+    strncpy(scoreAtual.nome, jogo.nome, 25);
+    scoreAtual.score = jogo.score;
+    scoreAtual.nivel = jogo.nivel;
+    scoreAtual.ocupado = true;
+
+    InsereScore(scoreAtual, ranking);
+
+    fwrite(ranking, sizeof(struct Score), 5, arquivoRanking);
+
+    fclose(arquivoRanking);
+}
+
+
+//Insere e ordena score atual no array de Scores
+void InsereScore(struct Score novaScore, struct Score ranking[])
+{
+
+    int i;
+
+    int posicao = 5;
+
+    for (i = 4; i >= 0; i--)
+    {
+        if (!ranking[i].ocupado)
+        {
+            posicao = i;
+
+        }
+        if (novaScore.score >= ranking[i].score && ranking[i].ocupado)
+        {
+            posicao = i;
+        }
+    }
+
+
+    for (i = 4; i > posicao; i--)
+    {
+        ranking[i] = ranking[i - 1];
+    }
+    if (posicao < 5)
+    {
+        ranking[posicao] = novaScore;
+    }
+}
+
+
+//Desenha os elementos de um score
+void DesenhaScoreSlot(struct Score score, int posicaoY)
+{
+    char scoreNome[TAMANHOTEXTO] = {'\0'};
+    strncpy(scoreNome, score.nome, 25);
+    char scoreNivel[TAMANHOTEXTO];
+    sprintf(scoreNivel, "Nivel %d", score.nivel);
+    char scoreScore[TAMANHOTEXTO];
+    sprintf(scoreScore, "Score %d", score.score);
+
+
+    DrawText(scoreNome, 300, posicaoY, 50, BLACK);
+    DrawText(scoreNivel, 300, posicaoY + 55, 40, BLACK);
+    DrawText(scoreScore, 600, posicaoY + 55, 40, BLACK);
+
+}
+
+
+
+//Desenha os scores do ranking na tela
+void DesenhaScores(struct Score ranking[])
+{
+
+    int i;
+    int posicaoY = 150;
+    char texto[TAMANHOTEXTO] = {"Ranking"};
+    char sair[TAMANHOTEXTO] = {"Pressione Enter para retornar"};
+    char colocacao[10] = {'\0'};
 
 
 
 
+    for (i = 0; i < 5; i++)
+    {
+        if (ranking[i].ocupado && ranking[i].score > 0)
+        {
+            colocacao[0] = i + '0' + 1;
+            DrawText(colocacao, 250, posicaoY, 50, BLACK);
+            DesenhaScoreSlot(ranking[i], posicaoY);
+        }
+        else
+        {
+            char vazio[TAMANHOTEXTO] = {""};
+            DrawText(vazio, 300, posicaoY, 50, BLACK);
+        }
+        posicaoY += 100;
+    }
+
+
+    DrawText(texto, 300, 50, 50, BLACK);
+    DrawText(sair, 300, 720, 50, BLACK);
+
+
+}
+
+
+
+
+
+//Inicializa a struct Seta, com variaveis definidas para cada modo de jogo
 void CriaSeta(struct Seta *seta, int modo)
 {
 
@@ -197,11 +352,14 @@ void CriaSeta(struct Seta *seta, int modo)
 
 }
 
+//Desenha a seta na tela
 void DesenhaSeta(struct Seta seta)
 {
     DrawRectangleRec(seta.posicao, BLACK);
 }
 
+
+//Movimenta a seta de forma unica para cada modo de jogo
 void MovimentaSeta(struct Seta *seta, int modo)
 {
 
@@ -238,7 +396,8 @@ void MovimentaSeta(struct Seta *seta, int modo)
         {
             seta->save = seta->save - 1;
             seta->posicao.y = seta->posicao.y - 100;
-        } else if (IsKeyPressed(KEY_W) && seta->save == SAIR)
+        }
+        else if (IsKeyPressed(KEY_W) && seta->save == SAIR)
         {
             seta->save = SAVE5;
             seta->posicao.y = seta->posicao.y - 170;
@@ -247,7 +406,8 @@ void MovimentaSeta(struct Seta *seta, int modo)
         {
             seta->save = seta->save + 1;
             seta->posicao.y = seta->posicao.y + 100;
-        } else if (IsKeyPressed(KEY_S) && seta->save == SAVE5)
+        }
+        else if (IsKeyPressed(KEY_S) && seta->save == SAVE5)
         {
             seta->save = SAIR;
             seta->posicao.y = seta->posicao.y + 170;
@@ -258,6 +418,8 @@ void MovimentaSeta(struct Seta *seta, int modo)
     }
 }
 
+
+//Desenha as opcoes do menu inicial
 void DesenhaOpcoesMenuInicial()
 {
     char novoJogo[TAMANHOTEXTO] = {"Novo jogo"};
@@ -274,7 +436,21 @@ void DesenhaOpcoesMenuInicial()
 
 }
 
+//Desenha o nome do jogador (utilizado no modo de selecao de nome)
+void DesenhaNome(struct Jogo jogo)
+{
+    char saveNome[25] = {'\0'};
+    strncpy(saveNome, jogo.nome, 25);
+    char texto[TAMANHOTEXTO] = {"Digite seu nome"};
 
+
+    DrawText(texto, 350, 200, 50, BLACK);
+    DrawText(saveNome, 300, 450, 50, BLACK);
+
+}
+
+
+//Desenha titulo do jogo na primeira tela
 void DesenhaTitulo()
 {
 
@@ -288,7 +464,7 @@ void DesenhaTitulo()
 
 
 //Desenha barra superior de acordo com os valores
-void DesenhaBarraStatus(struct Player player)
+void DesenhaBarraStatus(struct Player player, struct Jogo jogo)
 {
 
     char vidas[TAMANHOTEXTO] = {"Vidas: "};
@@ -301,7 +477,7 @@ void DesenhaBarraStatus(struct Player player)
     char conteudoMunicao[TAMANHOTEXTO] = {'\0'};
 
     sprintf(conteudoVidas, "%d", player.vidas);
-    sprintf(conteudoNivel, "%d", 0);
+    sprintf(conteudoNivel, "%d", jogo.nivel);
     sprintf(conteudoScore, "%d", player.score);
     sprintf(conteudoMunicao, "%d", player.municao);
 
@@ -318,6 +494,7 @@ void DesenhaBarraStatus(struct Player player)
     DrawText(conteudoScore, 1050, 10, 40, WHITE);
 }
 
+//Desenha menu de pause
 void DesenhaMenuPause(struct Jogo *jogo, struct Player player, struct Seta *seta)
 {
     DrawRectangle(190, 220, 820, 360, BLACK);
@@ -326,6 +503,8 @@ void DesenhaMenuPause(struct Jogo *jogo, struct Player player, struct Seta *seta
     DesenhaOpcoesMenuPause();
 }
 
+
+//Desenha as opcoes do menu de pause
 void DesenhaOpcoesMenuPause()
 {
     char voltar[TAMANHOTEXTO] = {"Voltar"};
@@ -342,7 +521,7 @@ void DesenhaOpcoesMenuPause()
 
 }
 
-
+//Desenha a tela de fim de nivel
 void DesenhaFimDoNivel()
 {
 
@@ -352,7 +531,7 @@ void DesenhaFimDoNivel()
     DrawText(texto, 250, 400, 100, BLACK);
 }
 
-
+//Desenha a tela de game over
 void DesenhaGameOver()
 {
 
@@ -365,6 +544,7 @@ void DesenhaGameOver()
 
 }
 
+//Desenha a tela de apresentacao dos niveis
 void DesenhaTelaEntreNiveis(struct Jogo jogo)
 {
 
@@ -386,63 +566,3 @@ void DesenhaTelaEntreNiveis(struct Jogo jogo)
 
 
 }
-
-void SalvaRanking(struct Jogo jogo)
-{
-    struct Score highscores[MAXIMODESCORES];
-    struct Score novaScore;
-
-    novaScore.score = jogo.score;
-
-    FILE *arquivoRankingEntrada = fopen("Highscores.bin","rb");
-
-    if (arquivoRankingEntrada != NULL)
-    {
-        fread(highscores, sizeof(struct Score), MAXIMODESCORES, arquivoRankingEntrada);
-    }
-
-    fclose(arquivoRankingEntrada);
-
-    AtualizaRanking(highscores, novaScore);
-
-
-    FILE *arquivoRankingSaida = fopen("Highscores.bin","wb");
-
-    if (arquivoRankingSaida != NULL)
-    {
-        fwrite(highscores, sizeof(struct Score), MAXIMODESCORES, arquivoRankingSaida);
-    }
-
-    fclose(arquivoRankingSaida);
-
-
-}
-
-void AtualizaRanking (struct Score highscores[MAXIMODESCORES], struct Score novaScore)
-{
-    int i;
-
-    int posicao = MAXIMODESCORES;
-
-    for (i = 9; i >= 0; i--)
-    {
-        if (novaScore.score >= highscores[i].score)
-        {
-            posicao = i;
-        }
-    }
-
-#ifdef DEBUG
-    printf("posicao: %d\n", posicao);
-#endif // DEBUG
-
-    for (i = 9; i > posicao; i--)
-    {
-        highscores[i] = highscores[i - 1];
-    }
-    if (posicao < 9)
-    {
-        highscores[posicao] = novaScore;
-    }
-}
-

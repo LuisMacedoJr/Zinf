@@ -16,22 +16,25 @@
 #include "modo.h"
 
 
-//#define DEBUG
-#define DEBUG2
-
 int main()
 {
-    //Inicia o jogo
+    //Inicia o jogo, a partir da tela inicial
     struct Jogo jogo;
     IniciaJogo(&jogo);
 
+    //Cria as estruturas que contem os jogos salvos e os scores
     struct Jogo jogosSalvos[5];
+    struct Score ranking[5];
 
+    //Realiza a leitura dos arquivos binarios do ranking e de jogo salvo
     CarregaArquivoSave(jogosSalvos);
+
+    CarregaArquivoRanking(ranking);
 
     InitWindow(LARGURA, ALTURA + ALTURABARRASTATUS, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(FPS);// Ajusta a janela para 60 frames por segundo
 
+    //O ciclo do jogo e realizado a partir da leitura continua do modo de jogo, expresso atraves de uma enumeracao de modos de jogo
     while(jogo.modoDeJogo != FIM && !WindowShouldClose())
     {
         switch(jogo.modoDeJogo)
@@ -54,10 +57,13 @@ int main()
         case SELECIONANOME:
             ModoSelecionaNome(&jogo);
         case GAMEOVER:
-            ModoGameOver(&jogo);
+            ModoGameOver(&jogo, ranking);
             break;
         case TELAENTRENIVEIS:
-            ModoEntreNiveis(&jogo);
+            ModoEntreNiveis(&jogo, jogosSalvos);
+            break;
+        case RANKING:
+            ModoRanking(&jogo, ranking);
             break;
         default:
             break;

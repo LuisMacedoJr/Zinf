@@ -8,7 +8,8 @@
 #include "monstros.h"
 
 //Funcao que inicializa parametros basicos do player
-void CriaPlayer (struct Player *player, struct Jogo jogo) {
+void CriaPlayer (struct Player *player, struct Jogo jogo)
+{
     player->velocidadeMovimento = 5;
     player->movendo = false;
     player->PlayerFPS =  3;
@@ -33,8 +34,8 @@ void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAM
 
     char *p;
 
-    player->hitbox.width = CELULAMATRIZ;
-    player->hitbox.height = CELULAMATRIZ;
+    player->hitbox.width = 40;
+    player->hitbox.height = 40;
 
     for(p = &mapa[0][0]; p <= &mapa[(ALTURA/CELULAMATRIZ) - 1][(LARGURA/CELULAMATRIZ) - 1]; p++)
     {
@@ -49,42 +50,127 @@ void PosicionaPlayerInicialmente (char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAM
 
 }
 
-//Funcao que desenha o jogador
+//Funcao que desenha o jogador a partir de uma textura, levando em consideracao a direcao do movimento e o status (stun)
 void DesenhaJogador (struct Player *player, Texture2D playerTexture)
 {
-    switch(player->orientacao) {
-        case 'U':
-            if(!player->movendo) {DrawTextureRec(playerTexture, (Rectangle){50,0,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);}
-            else {
-                if(player->contadorFrame > 3)
-                    player->contadorFrame = 0;
-                DrawTextureRec(playerTexture, (Rectangle){50*player->contadorFrame,0,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);
-            }
-            break;
-        case 'D':
-            if(!player->movendo) {DrawTextureRec(playerTexture, (Rectangle){50,100,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);}
-            else {
-                if(player->contadorFrame > 3)
-                    player->contadorFrame = 0;
-                DrawTextureRec(playerTexture, (Rectangle){50*player->contadorFrame,100,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);
-            }
-            break;
-        case 'L':
-            if(!player->movendo) {DrawTextureRec(playerTexture, (Rectangle){50,150,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);}
-            else {
-                if(player->contadorFrame > 3)
-                    player->contadorFrame = 0;
-                DrawTextureRec(playerTexture, (Rectangle){50*player->contadorFrame,150,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);
-            }
-            break;
-        case 'R':
-            if(!player->movendo) {DrawTextureRec(playerTexture, (Rectangle){50,50,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);}
-            else {
-                if(player->contadorFrame > 3)
-                    player->contadorFrame = 0;
-                DrawTextureRec(playerTexture, (Rectangle){50*player->contadorFrame,50,50,50}, (Vector2){player->hitbox.x, player->hitbox.y}, WHITE);
-            }
-            break;
+    float posicaoX = player->hitbox.x - (CELULAMATRIZ - player->hitbox.width)/2;
+    float posicaoY = player->hitbox.y - (CELULAMATRIZ - player->hitbox.height)/2;
+
+    Color opacidade = {255, 255, 255, 255};
+
+    if(player->stun)
+    {
+        opacidade = (Color)
+        {
+            255, 255, 255, 150
+        };
+    }
+    else
+    {
+        opacidade = (Color)
+        {
+            255, 255, 255, 255
+        };
+    }
+
+    switch(player->orientacao)
+    {
+    case 'U':
+        if(!player->movendo)
+        {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50,0,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        else
+        {
+            if(player->contadorFrame > 3)
+                player->contadorFrame = 0;
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50*player->contadorFrame,0,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        break;
+    case 'D':
+        if(!player->movendo)
+        {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50,100,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        else
+        {
+            if(player->contadorFrame > 3)
+                player->contadorFrame = 0;
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50*player->contadorFrame,100,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        break;
+    case 'L':
+        if(!player->movendo)
+        {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50,150,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        else
+        {
+            if(player->contadorFrame > 3)
+                player->contadorFrame = 0;
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50*player->contadorFrame,150,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        break;
+    case 'R':
+        if(!player->movendo)
+        {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50,50,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        else
+        {
+            if(player->contadorFrame > 3)
+                player->contadorFrame = 0;
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50*player->contadorFrame,50,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        }
+        break;
     }
 }
 
@@ -111,6 +197,7 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.y += 1;
                     break;
                 case 'L':
                     hitbox.x -= 1;
@@ -119,6 +206,7 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.x += 1;
                     break;
                 case 'R':
                     hitbox.x += 1;
@@ -127,6 +215,7 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.x -= 1;
                     break;
                 case 'D':
                     hitbox.y += 1;
@@ -135,7 +224,9 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
                         colisao = true;
                         return colisao;
                     }
+                    hitbox.y -= 1;
                     break;
+
                 default:
                     break;
                 }
@@ -148,7 +239,31 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
             if (obstaculos[i].tipo == 'V' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
             {
                 colisao = true;
-                obstaculos[i].tipo = 'E';
+                obstaculos[i].tipo = 'Z';
+                return colisao;
+            }
+
+        }
+        break;
+    case 'E':
+        for (i = 0; i < numeroDeObstaculos; i++)
+        {
+            if (obstaculos[i].tipo == 'E' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+            {
+                colisao = true;
+                obstaculos[i].tipo = 'Z';
+                return colisao;
+            }
+
+        }
+        break;
+    case 'B':
+        for (i = 0; i < numeroDeObstaculos; i++)
+        {
+            if (obstaculos[i].tipo == 'B' && CheckCollisionRecs(hitbox, obstaculos[i].hitbox))
+            {
+                colisao = true;
+                obstaculos[i].tipo = 'Z';
                 return colisao;
             }
 
@@ -163,16 +278,19 @@ bool ChecaColisaoPlayerObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMAT
 }
 
 //Detecta se o player não está se movendo.
-void PlayerParado(struct Player *player) {
+void PlayerParado(struct Player *player)
+{
     if(!IsKeyDown(KEY_W) && !IsKeyDown(KEY_A) && !IsKeyDown(KEY_S) && !IsKeyDown(KEY_D))
         player->movendo = false;
 }
 
 //Diminui o timer de animação do player pelo tempo passado entre o ultimo frame e o atual. Se o valor ficar abaixo de 0, reseta para o inverso do fps e aumenta o contador de frames. Basicamente
 //timer representa o tempo que deve passar entre cada frame da animação, por isso que quando o tempo passado for maior do que o timer, ele é resetado e aumenta o contador de frames.
-void AtualizaTimerAnimacaoPlayer(struct Player *player) {
+void AtualizaTimerAnimacaoPlayer(struct Player *player)
+{
     player->timerAnimacao -= GetFrameTime();
-    if(player->timerAnimacao < 0) {
+    if(player->timerAnimacao < 0)
+    {
         player->contadorFrame++;
         player->timerAnimacao = 1/player->PlayerFPS;
     }
@@ -238,6 +356,7 @@ void MovimentaPlayer (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMA
     }
 }
 
+//Atualiza os dois timers relacionados ao player, o timer que impede tiros repetidos e o timer que impede o player de tomar dano repetidamente (stun)
 void AtualizaTimerPlayer (struct Player *player)
 {
 
