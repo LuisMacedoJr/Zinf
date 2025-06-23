@@ -5,6 +5,8 @@
 #include "variaveis_globais.h"
 #include "estruturas.h"
 
+//Funcoes relacionadas ao ataque com chicote
+
 void AtacaChicote(struct Player player, struct Chicote *chicote);
 
 void DesenhaChicote(struct Chicote chicote);
@@ -13,7 +15,11 @@ bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*
 
 void KnockbackMonstro(struct Chicote chicote, struct Monstro *monstro, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, struct Player player);
 
+//Funcao que movimenta o player em resposta ao dano
+
 void KnockbackPlayer(struct Monstro monstro, struct Player *player, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos);
+
+//Funcoes relacionadas ao ataque com pistola/bala
 
 void CriaBalas(struct Bala balas[MAXIMODEBALAS]);
 

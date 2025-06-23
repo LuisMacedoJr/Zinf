@@ -224,6 +224,8 @@ void KnockbackMonstro(struct Chicote chicote, struct Monstro *monstro, struct Ob
 
 }
 
+
+//Inicializa o array de balas
 void CriaBalas(struct Bala balas[MAXIMODEBALAS])
 {
     int i;
@@ -236,12 +238,13 @@ void CriaBalas(struct Bala balas[MAXIMODEBALAS])
 
 }
 
+//Funcao que atira e posiciona uma bala dentro do array de balas
 void Atira(struct Player *player, struct Bala balas[MAXIMODEBALAS])
 {
     bool atirou = false;
 
     int i;
-    if (player->armaAtual == 'C' && !player->atirando && player->municao > 0)
+    if (!player->atirando && player->municao > 0)
     {
 
         for (i = 0; i < MAXIMODEBALAS; i++)
@@ -297,6 +300,8 @@ void Atira(struct Player *player, struct Bala balas[MAXIMODEBALAS])
 
 }
 
+
+// Checa colisao entre uma bala e as paredes, impedindo sua passagem
 bool ChecaColisaoBalaObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala bala, int numeroDeObstaculos, char tipoObstaculo)
 {
     int i;
@@ -326,6 +331,7 @@ bool ChecaColisaoBalaObstaculos (struct Obstaculo obstaculos[(ALTURA/CELULAMATRI
 }
 
 
+// Movimenta a bala ao longo do cenario
 void MovimentaBala (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala *bala, int numeroDeObstaculos)
 {
     if(ChecaColisaoBalaObstaculos(obstaculos, *bala, numeroDeObstaculos, 'P')
@@ -360,6 +366,7 @@ void MovimentaBala (char direcao, struct Obstaculo obstaculos[(ALTURA/CELULAMATR
 
 }
 
+//Atualiza status de cada bala no array de balas, afim de checar se a mesma atingiu algum monstro, parede ou saiu do cenario
 void AtualizaBalas(struct Bala balas[MAXIMODEBALAS], struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeMonstros, struct Player *player)
 {
     int i;
@@ -375,6 +382,8 @@ void AtualizaBalas(struct Bala balas[MAXIMODEBALAS], struct Obstaculo obstaculos
 
 }
 
+
+//Checa se uma bala atingiu algum monstro, aplica o dano e faz a bala desaparecer
 bool ChecaColisaoBalaMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Bala *bala, int numeroDeMonstros, struct Player *player)
 {
 
@@ -413,6 +422,8 @@ bool ChecaColisaoBalaMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LA
     return colisao;
 }
 
+
+//Desenha o array de balas na tela
 void DesenhaBalas (struct Bala balas[MAXIMODEBALAS])
 {
     int i;
@@ -421,92 +432,8 @@ void DesenhaBalas (struct Bala balas[MAXIMODEBALAS])
     {
         if (balas[i].ataque)
         {
-            DrawRectangleRec(balas[i].hitbox, YELLOW);
+            DrawRectangleRec(balas[i].hitbox, DARKGRAY);
         }
     }
 }
 
-
-
-//Função que atira a bala da pistola, onde o player está olhando.
-//void Atirar(struct Player player, struct Balas balas, char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], int posX[], int posY[], char *dir) {
-//    int i = 0;
-//    if(player.dirMaisRecente == 'U' && mapa[(player.posY - 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
-//        while (i < 3) {
-//            if(posX[i] == -1 || posY[i] == -1) {
-//                posX[i] = player.posX;
-//                posY[i] = player.posY - CELULAMATRIZ;
-//                *dir = 'U';
-//                break;
-//            }
-//            i++;
-//        }
-//    }
-//    if(player.dirMaisRecente == 'D' && mapa[(player.posY + 1)/CELULAMATRIZ][player.posX/CELULAMATRIZ] != 'P') {
-//        while (i < 3) {
-//            if(posX[i] == -1 || posY[i] == -1) {
-//                posX[i] = player.posX;
-//                posY[i] = player.posY + CELULAMATRIZ;
-//                *dir = 'D';
-//                break;
-//            }
-//            i++;
-//        }
-//    }
-//    if(player.dirMaisRecente == 'L' && mapa[player.posY/CELULAMATRIZ][(player.posX - 1)/CELULAMATRIZ] != 'P') {
-//        while (i < 3) {
-//            if(posX[i] == -1 || posY[i] == -1) {
-//                posX[i] = player.posX - CELULAMATRIZ;
-//                posY[i] = player.posY;
-//                *dir = 'L';
-//                break;
-//            }
-//            i++;
-//        }
-//    }
-//    if(player.dirMaisRecente == 'R' && mapa[player.posY/CELULAMATRIZ][(player.posX + 1)/CELULAMATRIZ] != 'P') {
-//        while (i < 3) {
-//            if(posX[i] == -1 || posY[i] == -1) {
-//                posX[i] = player.posX + CELULAMATRIZ;
-//                posY[i] = player.posY;
-//                *dir = 'R';
-//                break;
-//            }
-//            i++;
-//        }
-//    }
-//}
-
-////Função que seta todas as posições de balas para 0, e a velocidade para 10
-//void InicializaBalas(int posX[], int posY[], int *vel)
-//{
-//    int i;
-//    for(i=0; i<MAXBALAS; i++)
-//    {
-//        posX[i] = -1;
-//        posY[i] = -1;
-//    }
-//    *vel = 10;
-//}
-
-//Função que atualiza a posição das balas dependendo na orientação delas, e checa colisão com monstros/paredes, destruindo a bala e matando os monstros.
-//void AtualizaBalas(struct Balas balas, struct Monstros monstros, int posX[], int posY[], int monstrosPosX[], int monstrosPosY[], char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ]) {
-//    int i, j;
-//    for(i=0;i<MAXBALAS;i++) {
-//        if(posX[i] != -1 && posY[i] != -1) {
-//            Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel);
-//            if(Movimenta(balas.direcao, mapa, &posX[i], &posY[i], balas.balaVel)) {
-//                posX[i] = -1;
-//                posY[i] = -1;
-//            }
-//            for(j=0;j<MAXMONSTROS;j++) {
-//                if(abs(monstrosPosX[j] - posX[i]) < 25 && abs(monstrosPosY[j] - posY[i]) < 25) {
-//                    monstrosPosX[j] = -1;
-//                    monstrosPosY[j] = -1;
-//                    posX[i] = -1;
-//                    posY[i] = -1;
-//                }
-//            }
-//        }
-//    }
-//}

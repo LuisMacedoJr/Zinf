@@ -1,6 +1,8 @@
 #ifndef VARIAVEIS_GLOBAIS_H_INCLUDED
 #define VARIAVEIS_GLOBAIS_H_INCLUDED
 
+//Constates utilizadas pelo programa
+
 #define LARGURA 1200
 #define ALTURA 800
 #define CELULAMATRIZ 50

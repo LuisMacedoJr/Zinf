@@ -13,217 +13,64 @@
 #include "variaveis_globais.h"
 #include "estruturas.h"
 #include "menu.h"
+#include "modo.h"
 
-
-//#define DEBUG
 
 int main()
 {
-    //Criar as estruturas:
-    struct Player player;
+    //Inicia o jogo, a partir da tela inicial
+    struct Jogo jogo;
+    IniciaJogo(&jogo);
 
-    //Preenche o player com valores pre-estabelecidos
-    CriaPlayer(&player);
+    //Cria as estruturas que contem os jogos salvos e os scores
+    struct Jogo jogosSalvos[5];
+    struct Score ranking[5];
 
-    //Cria array de obstaculos:
-    struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)];
-    int numeroDeObstaculos = 0;
+    //Realiza a leitura dos arquivos binarios do ranking e de jogo salvo
+    CarregaArquivoSave(jogosSalvos);
 
-    //Cria array de monstros:
-    struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)];
-    int numeroDeMonstros = 0;
-
-    //Cria chicote:
-    struct Chicote chicote;
-
-    //Cria array de balas:
-    struct Bala balas[MAXIMODEBALAS];
-    CriaBalas(balas);
-
-
-
-#ifdef DEBUG
-
-    char distanciaString[20] = {'\0'};
-    float distanciaFloat;
-
-    char timerMovimento[20] = {'\0'};
-
-#endif // DEBUG
-
-    //Inicialização da seed
-    srand(time(NULL));
-
-    //Cria a matriz contendo as posicoes iniciais do jogo, com P = parede, J = jogador
-    char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ] =
-    {
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'V', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', 'P', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', 'V', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'M', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-        {'-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'},
-    };
-
-
-
-    //Inicializa as balas
-    //InicializaBalas(balas.posX,balas.posY,&balas.balaVel);
-
-    //Varre o mapa fornecido e posiciona o jogador inicialmente
-    PosicionaPlayerInicialmente(mapa, &player);
-
-    //Preenche array de obstaculos
-    CriaObstaculos(mapa, obstaculos, &numeroDeObstaculos);
-
-    //Preenche array de monstros
-    CriaMonstros(mapa, monstros, &numeroDeMonstros);
-    int numeroDeMonstrosVivos = numeroDeMonstros;
+    CarregaArquivoRanking(ranking);
 
     InitWindow(LARGURA, ALTURA + ALTURABARRASTATUS, "Zinf"); //Inicializa janela, com certo tamanho e titulo
     SetTargetFPS(FPS);// Ajusta a janela para 60 frames por segundo
 
-    //Criação das texturas
-    Texture2D TexturaPlayer = LoadTexture("textures/player/empty_handed.png");
-    Texture2D TexturaMonstro = LoadTexture("textures/monstros/snake.png");
-    Texture2D TexturaChao = LoadTexture("textures/ground.png");
-
-    //Este laco repete enquanto a janela nao for fechada
-    //Utilizamos ele para atualizar o estado do programa / jogo
-    while (!WindowShouldClose())
+    //O ciclo do jogo e realizado a partir da leitura continua do modo de jogo, expresso atraves de uma enumeracao de modos de jogo
+    while(jogo.modoDeJogo != FIM && !WindowShouldClose())
     {
-
-        //Movimento do jogador
-        if(DuasTeclas())
+        switch(jogo.modoDeJogo)
         {
-            MovimentaPlayer(player.orientacao, obstaculos, &player, numeroDeObstaculos);
-
+        case JOGO:
+            ModoJogo(&jogo, jogosSalvos);
+            break;
+        case TELAINICIAL:
+            ModoTelaInicial(&jogo);
+            break;
+        case MENUINICIAL:
+            ModoMenuInicial(&jogo);
+            break;
+        case NOVOJOGO:
+            ModoSelecionaJogo(&jogo, jogo.modoDeJogo, jogosSalvos);
+            break;
+        case CARREGAR:
+            ModoSelecionaJogo(&jogo, jogo.modoDeJogo, jogosSalvos);
+            break;
+        case SELECIONANOME:
+            ModoSelecionaNome(&jogo);
+        case GAMEOVER:
+            ModoGameOver(&jogo, ranking);
+            break;
+        case TELAENTRENIVEIS:
+            ModoEntreNiveis(&jogo, jogosSalvos);
+            break;
+        case RANKING:
+            ModoRanking(&jogo, ranking);
+            break;
+        default:
+            break;
         }
-        else
-        {
-            if(IsKeyDown(KEY_W))
-            {
-                MovimentaPlayer('U', obstaculos, &player, numeroDeObstaculos);
-            }
-            if(IsKeyDown(KEY_S))
-            {
-                MovimentaPlayer('D', obstaculos, &player, numeroDeObstaculos);
-            }
-            if(IsKeyDown(KEY_A))
-            {
-                MovimentaPlayer('L', obstaculos, &player, numeroDeObstaculos);
-            }
-            if(IsKeyDown(KEY_D))
-            {
-                MovimentaPlayer('R', obstaculos, &player, numeroDeObstaculos);
-            }
-
-        }
-        PlayerParado(&player);
-
-        //Atualiza os contadores de frames
-        AtualizaTimerAnimacaoPlayer(&player);
-        AtualizaTimerAnimacaoMonstro(monstros,numeroDeMonstros);
-
-        //Ataque com chicote
-        if(IsKeyDown(KEY_J))
-        {
-            AtacaChicote(player, &chicote);
-
-        }
-        else
-        {
-            chicote.ataque = false;
-        }
-
-        if(IsKeyPressed(KEY_K))
-        {
-            Atira(&player, balas);
-
-        }
-
-
-        //Detecção de colisão com vida
-        if(ChecaColisaoPlayerObstaculos(obstaculos, player, numeroDeObstaculos, player.orientacao, 'V'))
-        {
-            player.vidas++;
-        }
-
-
-        //Checa colisao e ataque entre o player e os monstros
-        ChecaColisaoPlayerMonstros(monstros, &player, numeroDeMonstros, obstaculos, numeroDeObstaculos);
-
-        ChecaColisaoChicoteMonstros(monstros, &chicote, numeroDeMonstros, obstaculos, numeroDeObstaculos, &player);
-
-        AtualizaBalas(balas, obstaculos, numeroDeObstaculos, monstros, numeroDeMonstros, &player);
-
-        //Atualiza valor da distancia de cada monstro em relacao ao player
-        AtualizaDistanciaMonstroPlayer(monstros, player, numeroDeMonstros);
-
-        //Atualiza timer e status dos monstros, baseado no ciclo espera-movimento
-        AtualizaTimerMonstros(monstros, numeroDeMonstros);
-
-        AtualizaStatusMonstros(monstros, numeroDeMonstros, player);
-
-        AtualizaTimerPlayer (&player);
-
-        AtualizaNumeroDeMonstrosVivos(monstros, numeroDeMonstros, &numeroDeMonstrosVivos);
-
-        //Executa movimento setado pelo status e timer
-        MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
-
-        // Atualiza o que eh mostrado na tela a partir do estado do jogo
-        BeginDrawing(); //Inicia o ambiente de desenho na tela
-        ClearBackground(RAYWHITE); //Limpa a tela e define cor de fundo
-        DesenhaBarraStatus(player);
-
-
-        if (player.vidas <= 0)
-        {
-            DesenhaGameOver();
-        }
-        else if (numeroDeMonstrosVivos <= 0)
-        {
-            DesenhaFimDoNivel();
-        }
-        else
-        {
-            DesenhaChao(mapa,TexturaChao);
-            DesenhaMapa(obstaculos, numeroDeObstaculos);
-            DesenhaJogador(&player,TexturaPlayer);
-            DesenhaChicote(chicote);
-            DesenhaMonstro(monstros, TexturaMonstro, numeroDeMonstros);
-            DesenhaBalas(balas);
-        }
-
-
-
-
-
-
-#ifdef DEBUG
-
-        sprintf(distanciaString, "%d", numeroDeMonstrosVivos);
-        DrawText(distanciaString, 25, 60, 50, GREEN);
-
-        sprintf(timerMovimento, "%g", player.hitbox.y);
-        DrawText(timerMovimento, 25, 120, 50, GREEN);
-
-
-#endif
-
-        EndDrawing(); //Finaliza o ambiente de desenho na tela
     }
+
+
 
     CloseWindow(); // Fecha a janela
     return 0;
