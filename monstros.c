@@ -36,8 +36,8 @@ void CriaMonstros(char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ], struct M
             monstros[*numeroDeMonstros].forca = 10;
             monstros[*numeroDeMonstros].raioVisao = 300;
             monstros[*numeroDeMonstros].velocidadeMovimento = 2.5;
-            monstros[*numeroDeMonstros].timerMovimento = 300;
-            monstros[*numeroDeMonstros].timerStun = 300;
+            monstros[*numeroDeMonstros].timerMovimento = 200;
+            monstros[*numeroDeMonstros].timerStun = 100;
             monstros[*numeroDeMonstros].stun = false;
             monstros[*numeroDeMonstros].status = 'E';
             monstros[*numeroDeMonstros].id = *numeroDeMonstros;
@@ -582,7 +582,7 @@ void AtualizaStatusMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARG
         }
         if (monstros[i].timerStun <= 0)
         {
-            monstros[i].timerStun = 300;
+            monstros[i].timerStun = 100;
             monstros[i].stun = false;
 
         }

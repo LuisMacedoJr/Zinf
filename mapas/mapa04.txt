@@ -8,9 +8,9 @@ PPPPPP            PPPPPP
      P  M     M   P     
      P            P     
      PPPPPP  PPPPPP     
-          P  P          
-          P  P          
+ P        P  P          
+          P  P       P  
           P  P          
                         
-           J         B  
+    P      J         B  
                         

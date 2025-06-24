@@ -9,7 +9,7 @@
 
 void AtacaChicote(struct Player player, struct Chicote *chicote);
 
-void DesenhaChicote(struct Chicote chicote);
+void DesenhaChicote(struct Chicote chicote, Texture2D chicoteAttackTexture);
 
 bool ChecaColisaoChicoteMonstros (struct Monstro monstros[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], struct Chicote *chicote, int numeroDeMonstros, struct Obstaculo obstaculos[(ALTURA/CELULAMATRIZ)*(LARGURA/CELULAMATRIZ)], int numeroDeObstaculos, struct Player *player);
 
