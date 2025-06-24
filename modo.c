@@ -54,6 +54,8 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
     //Cria a matriz contendo as posicoes iniciais do jogo, com P = parede, J = jogador
     char mapa[ALTURA/CELULAMATRIZ][LARGURA/CELULAMATRIZ] = {'\0'};
     LeMapa(*jogo, mapa);
+    struct Feno fenos[MAXIMODEFENOS];
+    CriaFeno(fenos);
 
 
     //Varre o mapa fornecido e posiciona o jogador inicialmente
@@ -68,9 +70,15 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
 
 
     //Criação das texturas
-    Texture2D TexturaPlayer = LoadTexture("textures/player/empty_handed.png");
+    Texture2D TexturaPlayer = LoadTexture("textures/player/player.png");
     Texture2D TexturaMonstro = LoadTexture("textures/monstros/snake.png");
     Texture2D TexturaChao = LoadTexture("textures/ground.png");
+    Texture2D TexturaVida = LoadTexture("textures/vida.png");
+    Texture2D TexturaArbusto = LoadTexture("textures/arbustos.png");
+    Texture2D TexturaFeno = LoadTexture("textures/feno.png");
+    Texture2D TexturaChicote = LoadTexture("textures/chicote/chicote.png");
+    Texture2D TexturaChicoteAtaque = LoadTexture("textures/chicote/chicote_ataque.png");
+    Texture2D TexturaBalas = LoadTexture("textures/balas.png");
 
     //Este laco repete enquanto a janela nao for fechada
     //Utilizamos ele para atualizar o estado do programa / jogo
@@ -78,12 +86,11 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
     {
 
         //Movimento do jogador
-        if (jogo->modoDeJogo != PAUSE)
+        if (jogo->modoDeJogo != PAUSE && (player.armaAtual != 'C' || (player.armaAtual == 'C' && !IsKeyDown(KEY_J))))
         {
             if(DuasTeclas())
             {
                 MovimentaPlayer(player.orientacao, obstaculos, &player, numeroDeObstaculos);
-
             }
             else
             {
@@ -116,7 +123,6 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
         if(IsKeyDown(KEY_J))
         {
             AtacaChicote(player, &chicote);
-
         }
         else
         {
@@ -126,7 +132,6 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
         if(IsKeyPressed(KEY_K))
         {
             Atira(&player, balas);
-
         }
 
         if(IsKeyPressed(KEY_P))
@@ -200,6 +205,10 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
 
             //Executa movimento setado pelo status e timer
             MovimentoAutomaticoMonstros(monstros, numeroDeMonstros, obstaculos, numeroDeObstaculos);
+
+            //Atualiza o feno
+            AtualizaFeno(fenos,MAXIMODEFENOS);
+
         }
 
         //Atualizacoes do modo de pause
@@ -238,11 +247,12 @@ void ModoJogo(struct Jogo *jogo, struct Jogo jogosSalvos[])
         DesenhaBarraStatus(player, *jogo);
 
         DesenhaChao(mapa,TexturaChao);
-        DesenhaMapa(obstaculos, numeroDeObstaculos);
+        DesenhaMapa(obstaculos, numeroDeObstaculos, TexturaArbusto, TexturaVida, TexturaChicote, TexturaBalas);
+        DesenhaChicote(chicote,TexturaChicoteAtaque);
         DesenhaJogador(&player,TexturaPlayer);
-        DesenhaChicote(chicote);
         DesenhaMonstro(monstros, TexturaMonstro, numeroDeMonstros);
         DesenhaBalas(balas);
+        DesenhaFeno(fenos, TexturaFeno, MAXIMODEFENOS);
 
         if(jogo->modoDeJogo == PAUSE)
         {

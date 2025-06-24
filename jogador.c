@@ -12,7 +12,7 @@ void CriaPlayer (struct Player *player, struct Jogo jogo)
 {
     player->velocidadeMovimento = 5;
     player->movendo = false;
-    player->PlayerFPS =  3;
+    player->PlayerFPS =  5;
     player->timerAnimacao = 1/player->PlayerFPS;
     player->contadorFrame = 0;
     player->orientacao = 'D';
@@ -21,7 +21,7 @@ void CriaPlayer (struct Player *player, struct Jogo jogo)
     player->municao = jogo.municao;
     player->stun = false;
     player->timerStun = 300;
-    player->timerTiro = 300;
+    player->timerTiro = 100;
     player->atirando = false;
     player->numeroDeBalasNaTela = 0;
     player->score = jogo.score;
@@ -76,7 +76,7 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
     switch(player->orientacao)
     {
     case 'U':
-        if(!player->movendo)
+        if(!player->movendo && (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J))))
         {
             DrawTextureRec(playerTexture, (Rectangle)
             {
@@ -86,7 +86,7 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
                 posicaoX, posicaoY
             }, opacidade);
         }
-        else
+        else if (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J)))
         {
             if(player->contadorFrame > 3)
                 player->contadorFrame = 0;
@@ -97,10 +97,18 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
             {
                 posicaoX, posicaoY
             }, opacidade);
+        } else if(player->armaAtual == 'C' && IsKeyDown(KEY_J)) {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                0,200,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
         }
         break;
     case 'D':
-        if(!player->movendo)
+        if(!player->movendo && (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J))))
         {
             DrawTextureRec(playerTexture, (Rectangle)
             {
@@ -110,7 +118,7 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
                 posicaoX, posicaoY
             }, opacidade);
         }
-        else
+        else if (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J)))
         {
             if(player->contadorFrame > 3)
                 player->contadorFrame = 0;
@@ -121,10 +129,18 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
             {
                 posicaoX, posicaoY
             }, opacidade);
+        } else if(player->armaAtual == 'C' && IsKeyDown(KEY_J)) {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                100,200,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
         }
         break;
     case 'L':
-        if(!player->movendo)
+        if(!player->movendo && (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J))))
         {
             DrawTextureRec(playerTexture, (Rectangle)
             {
@@ -134,7 +150,7 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
                 posicaoX, posicaoY
             }, opacidade);
         }
-        else
+        else if (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J)))
         {
             if(player->contadorFrame > 3)
                 player->contadorFrame = 0;
@@ -145,10 +161,18 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
             {
                 posicaoX, posicaoY
             }, opacidade);
+        } else if(player->armaAtual == 'C' && IsKeyDown(KEY_J)) {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                150,200,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
         }
         break;
     case 'R':
-        if(!player->movendo)
+        if(!player->movendo && (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J))))
         {
             DrawTextureRec(playerTexture, (Rectangle)
             {
@@ -158,13 +182,21 @@ void DesenhaJogador (struct Player *player, Texture2D playerTexture)
                 posicaoX, posicaoY
             }, opacidade);
         }
-        else
+        else if (player->armaAtual != 'C' || (player->armaAtual == 'C' && !IsKeyDown(KEY_J)))
         {
             if(player->contadorFrame > 3)
                 player->contadorFrame = 0;
             DrawTextureRec(playerTexture, (Rectangle)
             {
                 50*player->contadorFrame,50,50,50
+            }, (Vector2)
+            {
+                posicaoX, posicaoY
+            }, opacidade);
+        } else if(player->armaAtual == 'C' && IsKeyDown(KEY_J)) {
+            DrawTextureRec(playerTexture, (Rectangle)
+            {
+                50,200,50,50
             }, (Vector2)
             {
                 posicaoX, posicaoY
@@ -379,7 +411,7 @@ void AtualizaTimerPlayer (struct Player *player)
 
     if (player->timerTiro <= 0)
     {
-        player->timerTiro = 300;
+        player->timerTiro = 100;
         player->atirando = false;
 
     }

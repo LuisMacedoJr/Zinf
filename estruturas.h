@@ -90,14 +90,16 @@ struct Bala {
 struct Obstaculo {
     Rectangle hitbox;
     char tipo; //P = Parede, B = Municao, C = Chicote, V = vida
+    int vidaContadorFrame;
+    float vidaTimerAnimacao, vidaFPS;
 };
 
 //Estrutura com os dados do chicote
 struct Chicote {
     Rectangle hitbox;
     bool ataque;
+    char orientacao;
 };
-
 
 //Estrutura com os dados principais do jogo. Essa estrutura sera posicionada em um array de jogos no momento do salvamento
 struct Jogo {
@@ -124,6 +126,13 @@ struct Score {
     bool ocupado;
 };
 
+//Estrutura referente à bola de feno que passa pela tela periodicamente
+struct Feno {
+    Rectangle hitbox;
+    float angulo;
+    bool naTela;
+    int timer;
+};
 
 
 

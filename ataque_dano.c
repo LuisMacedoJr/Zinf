@@ -27,24 +27,28 @@ void AtacaChicote(struct Player player, struct Chicote *chicote) {
             chicote->hitbox.height = comprimentoChicote;
             chicote->hitbox.x = player.hitbox.x + player.hitbox.width/2 - chicote->hitbox.width/2;
             chicote->hitbox.y = player.hitbox.y - chicote->hitbox.height;
+            chicote->orientacao = 'V';
             break;
         case 'L':
             chicote->hitbox.width = comprimentoChicote;
             chicote->hitbox.height = larguraChicote;
             chicote->hitbox.x = player.hitbox.x - chicote->hitbox.width;
             chicote->hitbox.y = player.hitbox.y + player.hitbox.height/2 - chicote->hitbox.height/2;
+            chicote->orientacao = 'H';
             break;
         case 'D':
             chicote->hitbox.width = larguraChicote;
             chicote->hitbox.height = comprimentoChicote;
             chicote->hitbox.x = player.hitbox.x + player.hitbox.width/2 - chicote->hitbox.width/2;
             chicote->hitbox.y = player.hitbox.y + chicote->hitbox.height;
+            chicote->orientacao = 'V';
             break;
         case 'R':
             chicote->hitbox.width = comprimentoChicote;
             chicote->hitbox.height = larguraChicote;
             chicote->hitbox.x = player.hitbox.x + chicote->hitbox.width;
             chicote->hitbox.y = player.hitbox.y + player.hitbox.height/2 - chicote->hitbox.height/2;
+            chicote->orientacao = 'H';
             break;
         }
     }
@@ -52,11 +56,14 @@ void AtacaChicote(struct Player player, struct Chicote *chicote) {
 }
 
 //funcao que desenha o chicote previamente posicionado
-void DesenhaChicote(struct Chicote chicote)
+void DesenhaChicote(struct Chicote chicote, Texture2D chicoteAttackTexture)
 {
     if (chicote.ataque)
     {
-        DrawRectangleRec(chicote.hitbox, YELLOW);
+        if(chicote.orientacao == 'H')
+            DrawTextureRec(chicoteAttackTexture,(Rectangle) {0,0,50,50},(Vector2) {chicote.hitbox.x-5,chicote.hitbox.y-15}, WHITE);
+        if(chicote.orientacao == 'V')
+            DrawTextureRec(chicoteAttackTexture,(Rectangle) {50,0,50,50},(Vector2) {chicote.hitbox.x-15,chicote.hitbox.y-4}, WHITE);
     }
 }
 
@@ -233,7 +240,7 @@ void CriaBalas(struct Bala balas[MAXIMODEBALAS])
     for (i = 0; i < MAXIMODEBALAS; i++)
     {
         balas[i].ataque = false;
-        balas[i].velocidadeBala = 10;
+        balas[i].velocidadeBala = 15;
     }
 
 }
@@ -252,8 +259,8 @@ void Atira(struct Player *player, struct Bala balas[MAXIMODEBALAS])
 
             if (!balas[i].ataque && !atirou)
             {
-                float comprimentoBala = 50;
-                float larguraBala = 20;
+                float comprimentoBala = 25;
+                float larguraBala = 10;
 
                 balas[i].ataque = true;
 
