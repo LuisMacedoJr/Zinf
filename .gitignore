@@ -1,5 +1,4 @@
 *.layout
-*.depend
 *.gch
 obj/Debug/*.o
 *.o
