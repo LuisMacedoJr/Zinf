@@ -1,0 +1,164 @@
+# depslib dependency file v1.0
+1750721367 source:c:\users\lhcma\documents\github\zinf\main.c
+	"raylib.h"
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<math.h>
+	<time.h>
+	<stdbool.h>
+	"jogador.h"
+	"mapa.h"
+	"monstros.h"
+	"ataque_dano.h"
+	"variaveis_globais.h"
+	"estruturas.h"
+	"menu.h"
+	"modo.h"
+
+1748115983 source:c:\users\gabriel\desktop\github\zinf\main.c
+	"raylib.h"
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<math.h>
+	<time.h>
+
+1750721367 c:\users\lhcma\documents\github\zinf\jogador.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"estruturas.h"
+
+1750423996 source:c:\users\lhcma\documents\github\zinf\jogador.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"estruturas.h"
+
+1750809252 source:c:\users\lhcma\documents\github\zinf\jogador.c
+	<stdio.h>
+	<stdbool.h>
+	"raylib.h"
+	"jogador.h"
+	"variaveis_globais.h"
+	"monstros.h"
+
+1750809252 c:\users\lhcma\documents\github\zinf\variaveis_globais.h
+
+1749005889 source:c:\users\lhcma\documents\github\zinf\variaveis_globais.h
+
+1750809252 source:c:\users\lhcma\documents\github\zinf\mapa.c
+	<stdio.h>
+	<stdbool.h>
+	<stdlib.h>
+	<math.h>
+	"raylib.h"
+	"variaveis_globais.h"
+	"mapa.h"
+
+1750423996 source:c:\users\lhcma\documents\github\zinf\mapa.h
+	"variaveis_globais.h"
+	"estruturas.h"
+	"raylib.h"
+
+1750809252 c:\users\lhcma\documents\github\zinf\mapa.h
+	"variaveis_globais.h"
+	"estruturas.h"
+	"raylib.h"
+
+1750721367 c:\users\lhcma\documents\github\zinf\monstros.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"jogador.h"
+	"estruturas.h"
+
+1750809252 source:c:\users\lhcma\documents\github\zinf\monstros.c
+	<stdio.h>
+	<math.h>
+	<stdbool.h>
+	<stdlib.h>
+	<time.h>
+	"raylib.h"
+	"jogador.h"
+	"monstros.h"
+	"variaveis_globais.h"
+	"ataque_dano.h"
+
+1750809252 source:c:\users\lhcma\documents\github\zinf\ataque_dano.c
+	<stdio.h>
+	<math.h>
+	<stdbool.h>
+	<stdlib.h>
+	<time.h>
+	"raylib.h"
+	"variaveis_globais.h"
+	"ataque_dano.h"
+	"jogador.h"
+	"monstros.h"
+	"estruturas.h"
+
+1750809252 c:\users\lhcma\documents\github\zinf\ataque_dano.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"estruturas.h"
+
+1750809252 c:\users\lhcma\documents\github\zinf\estruturas.h
+	"raylib.h"
+
+1750721367 source:c:\users\lhcma\documents\github\zinf\menu.c
+	<stdio.h>
+	<math.h>
+	<stdbool.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+	"raylib.h"
+	"jogador.h"
+	"monstros.h"
+	"variaveis_globais.h"
+	"ataque_dano.h"
+	"menu.h"
+
+1750721367 c:\users\lhcma\documents\github\zinf\menu.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"jogador.h"
+	"estruturas.h"
+
+1749004083 c:\users\lhcma\documents\github\zinf\dependencias.h
+	"raylib.h"
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<math.h>
+	<time.h>
+	<stdbool.h>
+	"jogador.h"
+	"mapa.h"
+	"monstros.h"
+	"ataque_dano.h"
+	"variaveis_globais.h"
+	"estruturas.h"
+	"menu.h"
+
+1750809252 source:c:\users\lhcma\documents\github\zinf\modo.c
+	<stdio.h>
+	<math.h>
+	<stdbool.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+	"raylib.h"
+	"jogador.h"
+	"monstros.h"
+	"modo.h"
+	"menu.h"
+	"mapa.h"
+	"variaveis_globais.h"
+	"ataque_dano.h"
+
+1750721367 c:\users\lhcma\documents\github\zinf\modo.h
+	<stdbool.h>
+	"variaveis_globais.h"
+	"jogador.h"
+	"estruturas.h"
+
